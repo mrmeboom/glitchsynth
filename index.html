@@ -490,7 +490,7 @@
         </div>
 
         <div class="mod-section">
-            <div class="mod-title">MOD MATRIX</div>
+            <div class="mod-title">MODULATION MATRIX</div>
             <div id="modulation-matrix"></div>
         </div>
 
@@ -591,18 +591,18 @@
         </div>
 
         <div class="mod-section">
-            <div class="mod-title">IMG FILTER</div>
+            <div class="mod-title">IMAGE FILTER</div>
             
             <div style="margin-bottom: 12px; text-align: center;">
                 <span id="image-mode-select">
                     <input type="radio" name="imageMode" id="imgOff" value="OFF" checked>
                     <label for="imgOff">OFF</label>
-                    <input type="radio" name="imageMode" id="imgComb" value="COMB">
-                    <label for="imgComb">COMB</label>
-                    <input type="radio" name="imageMode" id="imgMorph" value="MORPH">
-                    <label for="imgMorph">MORPH</label>
-                    <input type="radio" name="imageMode" id="imgResample" value="RESAMPLE">
-                    <label for="imgResample">RESAMPLE</label>
+                    <input type="radio" name="imageMode" id="imgSkin" value="SKIN">
+                    <label for="imgSkin">SKIN</label>
+                    <input type="radio" name="imageMode" id="imgBlob" value="BLOB">
+                    <label for="imgBlob">BLOB</label>
+                    <input type="radio" name="imageMode" id="imgVoid" value="VOID">
+                    <label for="imgVoid">VOID</label>
                 </span>
             </div>
             
@@ -700,9 +700,9 @@
             drive: 25,
             texture: null,
             shaderPrograms: {
-                comb: null,
-                morph: null,
-                resample: null
+                skin: null,
+                blob: null,
+                void: null
             },
             uniformLocations: {},
             geometryBuffers: {},
@@ -745,7 +745,8 @@
             ['--body-color-hue', 0, 360, 'BDYCOLOR', 'Off'],
             ['--body-spacing', -2, 10, 'BDYSPC', 'Off'],
             ['--body-style-a', 0, 4, 'STYLEA', 'Off'],
-            ['--body-style-b', 0, 4, 'STYLEB', 'Off']
+            ['--body-style-b', 0, 4, 'STYLEB', 'Off'],
+            ['--image-hue-rotate', 0, 360, 'IMGHUE', 'Off']
         ];
 
         let modMatrix = MOD_MATRIX_DEFAULTS.map(([cssVar, min, max, label, source]) => ({
@@ -2107,15 +2108,8 @@
                 
                 // At high chaos, offset direction changes
                 if (chaos > 0.5) {
-                    // Glitchy jumping instead of smooth rocking
-                    float jumpSpeed = 2.0 + (chaos - 0.5) * 10.0; // 2Hz to 12Hz
-                    float jumpPhase = floor(time * animSpeed * jumpSpeed);
-                    
-                    // Random angle per jump
-                    float angle = hash(jumpPhase) * 6.28;
-                    float distance = separation * (0.5 + hash(jumpPhase + 0.5) * 1.5);
-                    
-                    offset = vec2(cos(angle), sin(angle)) * distance / resolution.x;
+                    float angle = sin(time * animSpeed * 2.0) * chaos;
+                    offset = vec2(cos(angle), sin(angle)) * separation / resolution.x;
                 }
                 
                 float r = texture2D(imageTexture, fract(finalUV - offset)).r;
@@ -2330,14 +2324,14 @@
                 return false;
             }
             
-            imageFilterState.shaderPrograms.comb = program;
+            imageFilterState.shaderPrograms.skin = program;
             
             console.log('LUMA SERPENT shader compiled successfully');
             return true;
         }
         
         // =====================================================
-        // FERRO SPLASH (MORPH Mode) Functions
+        // FERRO SPLASH (BLOB Mode) Functions
         // =====================================================
         
         function createIcosphere(subdivisions) {
@@ -2445,7 +2439,7 @@
                 return false;
             }
             
-            imageFilterState.shaderPrograms.morph = program;
+            imageFilterState.shaderPrograms.blob = program;
             
             // Create icosphere geometry (2 subdivisions = ~320 triangles)
             const sphere = createIcosphere(2);
@@ -2463,7 +2457,7 @@
             imgFilterGL.bindBuffer(imgFilterGL.ELEMENT_ARRAY_BUFFER, idxBuffer);
             imgFilterGL.bufferData(imgFilterGL.ELEMENT_ARRAY_BUFFER, new Uint16Array(sphere.indices), imgFilterGL.STATIC_DRAW);
             
-            imageFilterState.geometryBuffers.morph = {
+            imageFilterState.geometryBuffers.blob = {
                 position: posBuffer,
                 normal: normBuffer,
                 indices: idxBuffer,
@@ -3258,7 +3252,7 @@
             }
         }
         
-        console.log('RAFLOST LOADED - Proto 85 - GLITCH DITHER REFACTORED!');
+        console.log('RAFLOST LOADED - Proto 84 - GLITCH DITHER COMPLETE!');
     </script>
 </body>
 </html>
