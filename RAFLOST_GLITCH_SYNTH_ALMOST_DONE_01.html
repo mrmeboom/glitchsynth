@@ -1,0 +1,3264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raflost Modular Glitch Interface</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alumni+Sans+Pinstripe:ital@0;1&family=Ballet:opsz@16..72&family=Climate+Crisis&family=Fleur+De+Leah&family=Jacquard+24&family=New+Rocker&family=Oi&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --header-font: 'UnifrakturMaguntia', cursive; 
+            --header-color-hue: 0;
+            --body-font: 'Courier New', monospace;
+            --body-color-hue: 0;
+            
+            --image-hue-rotate: 0deg; 
+            --image-saturation: 100%;
+            --image-invert: 0%;
+
+            --body-spacing: 0px;
+            --body-style-a: 0;
+            --body-style-b: 0;
+        }
+
+        body {
+            background: transparent;
+            font-family: var(--body-font);
+            color: black;
+            line-height: 1.5;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            border-top: 10px solid black; 
+            transition: 0.15s color, 0.15s border-color;
+            position: relative; 
+        }
+
+        #noiseCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; 
+            pointer-events: none;
+        }
+
+        #randomNoiseCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            display: none;
+            mix-blend-mode: screen;
+        }
+
+        #imageFilterCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+            z-index: 2;
+        }
+
+        .header-container {
+            position: relative; 
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-family: var(--header-font);
+            font-size: 3rem;
+            color: black;
+            margin: 0;
+            font-weight: 400;
+            letter-spacing: 0px;
+            transition: 0.1s color, 0.5s font-family;
+        }
+
+        #main-header span {
+            display: inline-block;
+            transition: 0.1s all;
+        }
+
+        .nav-links {
+            text-align: right;
+        }
+
+        .nav-links a {
+            font-family: var(--body-font);
+            text-decoration: none;
+            color: #FFD700;
+            margin-left: 1.5rem;
+            display: inline-block;
+            line-height: 1.2;
+            padding: 2px 0;
+            border-bottom: 1px solid #FFD700; 
+            transition: 0.2s color, 0.2s border-color;
+        }
+
+        .nav-links a:hover {
+            color: #00FF00;
+            border-bottom-color: #00FF00;
+        }
+
+        .main-content {
+            position: relative; 
+            z-index: 10;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .main-image {
+            max-width: 100%;
+            height: auto;
+            border: 5px solid black;
+            box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.5);
+            margin: 3rem 0;
+            filter: hue-rotate(var(--image-hue-rotate)) saturate(130%);
+            transition: 0.08s filter;
+        }
+
+        .body-copy {
+            letter-spacing: var(--body-spacing);
+            text-align: left; 
+            max-width: 600px; 
+            margin: 3rem auto;
+            transition: 0.08s all;
+            color: black;
+        }
+        
+        #modulator-panel {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            background: #000;
+            color: #0f0;
+            border: 3px solid #0f0;
+            padding: 12px;
+            font-family: var(--body-font);
+            width: 320px;
+            display: none;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+        }
+
+        .mod-section {
+            border: 1px solid #0f0;
+            padding: 8px;
+            margin-bottom: 12px;
+            background: #111;
+        }
+
+        .mod-title {
+            text-align: center;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .lfo-driver {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
+            padding: 3px;
+            background: #000;
+        }
+
+        .lfo-driver label {
+            width: 15px;
+            flex-shrink: 0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .lfo-driver input[type="range"] {
+            flex-grow: 1;
+            max-width: 120px;
+            margin: 0 4px;
+            -webkit-appearance: none;
+            background: #222;
+            height: 5px;
+            border-radius: 2px;
+        }
+        .lfo-driver input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #0f0;
+            cursor: pointer;
+            border: 2px solid #000;
+            border-radius: 50%;
+        }
+
+        #img-freq::-webkit-slider-thumb,
+        #img-res::-webkit-slider-thumb,
+        #img-drive::-webkit-slider-thumb,
+        #noise-complexity::-webkit-slider-thumb,
+        #noise-speed-red::-webkit-slider-thumb,
+        #noise-speed-green::-webkit-slider-thumb,
+        #noise-speed-blue::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #0f0;
+            cursor: pointer;
+            border: 2px solid #000;
+            border-radius: 50%;
+        }
+
+        .lfo-shape-select {
+            display: flex;
+            gap: 1px;
+            margin-right: 4px;
+        }
+
+        .lfo-shape-select input[type="radio"] {
+            display: none;
+        }
+        .lfo-shape-select label {
+            padding: 2px;
+            border: 1px solid #0f0;
+            cursor: pointer;
+            user-select: none;
+            background: #000;
+            transition: 0.1s;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lfo-shape-select label svg {
+            width: 14px;
+            height: 14px;
+            fill: #0f0;
+        }
+        .lfo-shape-select label:hover {
+            background: #003300;
+        }
+        .lfo-shape-select input[type="radio"]:checked + label {
+            background: #0f0;
+        }
+        .lfo-shape-select input[type="radio"]:checked + label svg {
+            fill: #000;
+        }
+        .lfo-output {
+            width: 45px;
+            text-align: right;
+            font-family: monospace;
+        }
+        
+        #glitch-clock-controls > div {
+            margin-bottom: 8px;
+        }
+
+        .stepped-slider-container {
+            position: relative;
+            padding: 0 10px;
+            margin: 12px 0;
+        }
+
+        #glitch-speed {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+        }
+
+        #glitch-speed::-webkit-slider-track {
+            height: 6px;
+            background: #222;
+            border: 1px solid #0f0;
+        }
+
+        #glitch-speed::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #0f0;
+            border: 2px solid #000;
+            cursor: pointer;
+            margin-top: -5px;
+        }
+
+        #glitch-speed::-moz-range-track {
+            height: 6px;
+            background: #222;
+            border: 1px solid #0f0;
+        }
+
+        #glitch-speed::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #0f0;
+            border: 2px solid #000;
+            cursor: pointer;
+        }
+
+        .division-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            font-size: 0.65rem;
+            color: #0f0;
+            font-family: monospace;
+            user-select: none;
+        }
+
+        .division-label {
+            text-align: center;
+            flex: 1;
+        }
+
+        #mode-source-select, #glitch-mode-select, #image-mode-select {
+            display: inline-flex;
+            gap: 2px;
+        }
+
+        #mode-source-select input[type="radio"],
+        #glitch-mode-select input[type="radio"],
+        #image-mode-select input[type="radio"] {
+            display: none;
+        }
+
+        #mode-source-select label,
+        #glitch-mode-select label,
+        #image-mode-select label {
+            padding: 2px 5px;
+            border: 1px solid #0f0;
+            cursor: pointer;
+            font-size: 0.65rem;
+            background: #000;
+            transition: 0.1s;
+        }
+
+        #mode-source-select label:hover,
+        #glitch-mode-select label:hover,
+        #image-mode-select label:hover {
+            background: #003300;
+        }
+
+        #mode-source-select input[type="radio"]:checked + label,
+        #glitch-mode-select input[type="radio"]:checked + label,
+        #image-mode-select input[type="radio"]:checked + label {
+            background: #0f0;
+            color: #000;
+        }
+
+        #modulation-matrix {
+            font-size: 0.75rem;
+        }
+
+        .matrix-table {
+            display: table;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .matrix-header-row {
+            display: table-row;
+        }
+
+        .matrix-header-cell {
+            display: table-cell;
+            text-align: center;
+            padding: 6px 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #0f0;
+        }
+
+        .matrix-header-cell:first-child {
+            width: 80px;
+        }
+
+        .matrix-row {
+            display: table-row;
+        }
+
+        .matrix-row:hover {
+            background: #001100;
+        }
+
+        .matrix-label-cell {
+            display: table-cell;
+            padding: 6px 4px;
+            font-size: 0.7rem;
+            color: #0f0;
+            vertical-align: middle;
+        }
+
+        .matrix-button-cell {
+            display: table-cell;
+            text-align: center;
+            padding: 4px 2px;
+            vertical-align: middle;
+        }
+
+        .matrix-radio-button {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #0f0;
+            border-radius: 50%;
+            background: #000;
+            cursor: pointer;
+            position: relative;
+            transition: 0.1s;
+        }
+
+        .matrix-radio-button:hover {
+            background: #003300;
+            box-shadow: 0 0 5px #0f0;
+        }
+
+        .matrix-radio-button.active {
+            background: #0f0;
+        }
+
+        .matrix-radio-button.active::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #000;
+        }
+
+        #toggle-dynamic-css {
+            padding: 12px 24px;
+            font-family: var(--body-font);
+            cursor: pointer;
+            border: 3px solid #000;
+            background: #fff;
+            box-shadow: 5px 5px 0px #000;
+            font-size: 1rem;
+            transition: 0.1s;
+        }
+
+        #toggle-dynamic-css:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0px #000;
+        }
+
+        #toggle-dynamic-css:active {
+            transform: translate(5px, 5px);
+            box-shadow: 0px 0px 0px #000;
+        }
+    </style>
+</head>
+<body>
+    
+    <canvas id="noiseCanvas"></canvas>
+    <canvas id="randomNoiseCanvas"></canvas>
+
+        <div id="modulator-panel">
+        
+        <div class="mod-section">
+            <div class="mod-title">VCSSO</div>
+            <div id="lfo-drivers"></div>
+        </div>
+
+        <div class="mod-section">
+            <div class="mod-title">MOD MATRIX</div>
+            <div id="modulation-matrix"></div>
+        </div>
+
+        <div class="mod-section">
+            <div class="mod-title">HEADER ARP</div>
+            <div id="glitch-clock-controls">
+                
+                <div style="margin-bottom: 12px;">
+                    <div class="stepped-slider-container">
+                        <input type="range" id="glitch-speed" min="0" max="7" step="1" value="1">
+                        <div class="division-labels">
+                            <span class="division-label">1/1</span>
+                            <span class="division-label">1/2</span>
+                            <span class="division-label">1/4</span>
+                            <span class="division-label">1/8</span>
+                            <span class="division-label">1/16</span>
+                            <span class="division-label">1/32</span>
+                            <span class="division-label">1/64</span>
+                            <span class="division-label">1/128</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 8px;">
+                    <span style="font-size: 0.75rem; margin-right: 8px;">STYLE:</span>
+                    <span id="glitch-mode-select">
+                        <input type="radio" name="glitchMode" id="modeUp" value="Up" checked><label for="modeUp">UP</label>
+                        <input type="radio" name="glitchMode" id="modeDown" value="Down"><label for="modeDown">DN</label>
+                        <input type="radio" name="glitchMode" id="modeDiverge" value="Diverge"><label for="modeDiverge">DIV</label>
+                        <input type="radio" name="glitchMode" id="modeConverge" value="Converge"><label for="modeConverge">CON</label>
+                        <input type="radio" name="glitchMode" id="modeRandom" value="Random"><label for="modeRandom">RND</label>
+                        <input type="radio" name="glitchMode" id="modeAllDiff" value="AllDiff"><label for="modeAllDiff">DIFF</label>
+                        <input type="radio" name="glitchMode" id="modeAllSame" value="AllSame"><label for="modeAllSame">SAME</label>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mod-section">
+            <div class="mod-title">RGB UNISON</div>
+            
+            <div style="margin-bottom: 10px; padding: 5px; background: #000; display: flex; gap: 5px; align-items: center;">
+                <select id="noise-mode-red" style="flex: 1; background: #111; color: #ff0000; border: 1px solid #ff0000; padding: 3px 5px; font-family: var(--body-font); font-size: 0.65rem; cursor: pointer;">
+                    <option value="RANDOM">RANDOM</option>
+                    <option value="SPREAD">SPREAD</option>
+                    <option value="DETUNE">DETUNE</option>
+                    <option value="CLASSIC">CLASSIC</option>
+                    <option value="SHIMMER">SHIMMER</option>
+                    <option value="DRIFT">DRIFT</option>
+                    <option value="ANALOG">ANALOG</option>
+                    <option value="OFF">OFF</option>
+                </select>
+                <select id="noise-mode-green" style="flex: 1; background: #111; color: #00ff00; border: 1px solid #00ff00; padding: 3px 5px; font-family: var(--body-font); font-size: 0.65rem; cursor: pointer;">
+                    <option value="RANDOM">RANDOM</option>
+                    <option value="SPREAD">SPREAD</option>
+                    <option value="DETUNE">DETUNE</option>
+                    <option value="CLASSIC">CLASSIC</option>
+                    <option value="SHIMMER">SHIMMER</option>
+                    <option value="DRIFT">DRIFT</option>
+                    <option value="ANALOG">ANALOG</option>
+                    <option value="OFF">OFF</option>
+                </select>
+                <select id="noise-mode-blue" style="flex: 1; background: #111; color: #0099ff; border: 1px solid #0099ff; padding: 3px 5px; font-family: var(--body-font); font-size: 0.65rem; cursor: pointer;">
+                    <option value="RANDOM">RANDOM</option>
+                    <option value="SPREAD">SPREAD</option>
+                    <option value="DETUNE">DETUNE</option>
+                    <option value="CLASSIC">CLASSIC</option>
+                    <option value="SHIMMER">SHIMMER</option>
+                    <option value="DRIFT">DRIFT</option>
+                    <option value="ANALOG">ANALOG</option>
+                    <option value="OFF">OFF</option>
+                </select>
+            </div>
+            
+            <div style="margin-bottom: 10px; padding: 8px 5px; background: #000; display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 0.7rem; color: #0f0; min-width: 80px;">VOICES</label>
+                <input type="range" id="noise-complexity" min="1" max="100" step="1" value="80" style="flex-grow: 1; -webkit-appearance: none; background: #222; height: 5px; border-radius: 2px;">
+                <span id="voices-value" style="font-size: 0.7rem; color: #0f0; min-width: 30px; text-align: right; font-family: monospace;">80</span>
+            </div>
+            
+            <div style="margin-bottom: 8px; padding: 8px 5px; background: #000; display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 0.7rem; color: #ff0000; min-width: 80px;">AMOUNT</label>
+                <input type="range" id="noise-speed-red" min="0" max="10" step="0.1" value="5.0" style="flex-grow: 1; -webkit-appearance: none; background: #222; height: 5px; border-radius: 2px;">
+                <span id="amount-red-value" style="font-size: 0.7rem; color: #ff0000; min-width: 40px; text-align: right; font-family: monospace;">50%</span>
+            </div>
+            
+            <div style="margin-bottom: 8px; padding: 8px 5px; background: #000; display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 0.7rem; color: #00ff00; min-width: 80px;">AMOUNT</label>
+                <input type="range" id="noise-speed-green" min="0" max="10" step="0.1" value="5.0" style="flex-grow: 1; -webkit-appearance: none; background: #222; height: 5px; border-radius: 2px;">
+                <span id="amount-green-value" style="font-size: 0.7rem; color: #00ff00; min-width: 40px; text-align: right; font-family: monospace;">50%</span>
+            </div>
+            
+            <div style="margin-bottom: 8px; padding: 8px 5px; background: #000; display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 0.7rem; color: #0099ff; min-width: 80px;">AMOUNT</label>
+                <input type="range" id="noise-speed-blue" min="0" max="10" step="0.1" value="5.0" style="flex-grow: 1; -webkit-appearance: none; background: #222; height: 5px; border-radius: 2px;">
+                <span id="amount-blue-value" style="font-size: 0.7rem; color: #0099ff; min-width: 40px; text-align: right; font-family: monospace;">50%</span>
+            </div>
+        </div>
+
+        <div class="mod-section">
+            <div class="mod-title">IMG FILTER</div>
+            
+            <div style="margin-bottom: 12px; text-align: center;">
+                <span id="image-mode-select">
+                    <input type="radio" name="imageMode" id="imgOff" value="OFF" checked>
+                    <label for="imgOff">OFF</label>
+                    <input type="radio" name="imageMode" id="imgComb" value="COMB">
+                    <label for="imgComb">COMB</label>
+                    <input type="radio" name="imageMode" id="imgMorph" value="MORPH">
+                    <label for="imgMorph">MORPH</label>
+                    <input type="radio" name="imageMode" id="imgResample" value="RESAMPLE">
+                    <label for="imgResample">RESAMPLE</label>
+                </span>
+            </div>
+            
+            <div style="margin-bottom: 8px; padding: 8px 5px; background: #000; display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 0.7rem; color: #0f0; min-width: 80px;">FREQ</label>
+                <input type="range" id="img-freq" min="0" max="100" value="50" style="flex-grow: 1; -webkit-appearance: none; background: #222; height: 5px; border-radius: 2px;">
+                <span id="img-freq-value" style="font-size: 0.7rem; color: #0f0; min-width: 30px; text-align: right; font-family: monospace;">50</span>
+            </div>
+            
+            <div style="margin-bottom: 8px; padding: 8px 5px; background: #000; display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 0.7rem; color: #0f0; min-width: 80px;">RES</label>
+                <input type="range" id="img-res" min="0" max="100" value="50" style="flex-grow: 1; -webkit-appearance: none; background: #222; height: 5px; border-radius: 2px;">
+                <span id="img-res-value" style="font-size: 0.7rem; color: #0f0; min-width: 30px; text-align: right; font-family: monospace;">50</span>
+            </div>
+            
+            <div style="margin-bottom: 8px; padding: 8px 5px; background: #000; display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 0.7rem; color: #0f0; min-width: 80px;">DRIVE</label>
+                <input type="range" id="img-drive" min="0" max="100" value="25" style="flex-grow: 1; -webkit-appearance: none; background: #222; height: 5px; border-radius: 2px;">
+                <span id="img-drive-value" style="font-size: 0.7rem; color: #0f0; min-width: 30px; text-align: right; font-family: monospace;">25</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="header-container">
+        <h2 id="main-header">Raflost Festival</h2>
+
+        <div class="nav-links">
+            <a href="#about">ABOUT</a>
+            <a href="#contact">CONTACT</a>
+            <a href="#previous">PREVIOUS</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="image-container" style="position: relative; display: inline-block;">
+            <img 
+                src="https://i.imgur.com/bvcYRdN.png"
+                crossorigin="anonymous"
+                onerror="this.onerror=null;this.src='https://placehold.co/800x600/000/fff?text=TEST+IMAGE+%28Upload+Your+Own%29';"
+                alt="Raflost 2025 Schedule Poster" 
+                class="main-image"
+                id="main-image"
+            >
+            <canvas id="imageFilterCanvas"></canvas>
+        </div>
+
+        <p class="body-copy" id="body-text">
+            Glitch-core, cyber-decay, and rhythmic chaos. The Raflost Experimental Festival returns to its roots, inviting you to the modular glitch synth website. Activate Experiment Mode to modulate the page's colour, typography, and image filters in real time. Tune into the static, disconnect the signal, and embrace the noise. Everything is controllable, even the body text and the header's glitch speed.
+        </p>
+    </div>
+    
+    <div style="text-align: center; padding: 1rem; position: relative; z-index: 10;">
+        <button id="toggle-dynamic-css">
+            ACTIVATE EXPERIMENT MODE
+        </button>
+    </div>
+
+    <script>
+        console.log('SCRIPT STARTING');
+        
+        const root = document.documentElement.style;
+        const toggleButton = document.getElementById('toggle-dynamic-css');
+        const headerElement = document.getElementById('main-header');
+        const modulatorPanel = document.getElementById('modulator-panel');
+        const lfoDriversContainer = document.getElementById('lfo-drivers');
+        const matrixContainer = document.getElementById('modulation-matrix');
+        const canvas = document.getElementById('noiseCanvas');
+        const randomCanvas = document.getElementById('randomNoiseCanvas');
+        const gl = canvas ? (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) : null;
+        
+        let animationFrameId = null; 
+        let noiseFrameId = null;
+        let isExperimentMode = false;
+        let shaderProgram = null;
+        let uniformLocations = {};
+        
+        let timeAccumR = 0;
+        let timeAccumG = 0;
+        let timeAccumB = 0;
+        let lastNoiseTime = 0;
+        
+        console.log('Init complete', {canvas: !!canvas, gl: !!gl});
+        
+        if (!gl) console.error('No WebGL!');
+        
+        const imageFilterCanvas = document.getElementById('imageFilterCanvas');
+        const mainImage = document.getElementById('main-image');
+        const imgFilterGL = imageFilterCanvas ? (imageFilterCanvas.getContext('webgl') || imageFilterCanvas.getContext('experimental-webgl')) : null;
+        
+        let imageFilterState = {
+            mode: 'OFF',
+            frequency: 50,
+            resonance: 50,
+            drive: 25,
+            texture: null,
+            shaderPrograms: {
+                comb: null,
+                morph: null,
+                resample: null
+            },
+            uniformLocations: {},
+            geometryBuffers: {},
+            animationFrameId: null
+        };
+        
+        console.log('Image Filter Init:', {canvas: !!imageFilterCanvas, gl: !!imgFilterGL});
+        if (!imgFilterGL) console.warn('Image Filter WebGL not available');
+        
+        const DYNAMIC_FONTS = [
+            '"New Rocker", system-ui', '"Oi", serif', '"Ballet", cursive', 
+            '"Climate Crisis", sans-serif', '"Fleur De Leah", cursive', 
+            '"Alumni Sans Pinstripe", sans-serif', '"UnifrakturMaguntia", cursive', 
+            '"Jacquard 24", system-ui'
+        ];
+        
+        function wrapHeaderText() {
+            const text = headerElement.textContent.trim();
+            headerElement.innerHTML = text.split('').map(
+                (char, index) => `<span id="hchar-${index}">${char === ' ' ? '&nbsp;' : char}</span>`
+            ).join('');
+        }
+        wrapHeaderText();
+        const headerChars = Array.from(headerElement.querySelectorAll('span'));
+        
+        const LFO_COUNT = 4;
+        
+        let lfoState = [];
+        for (let i = 0; i < LFO_COUNT; i++) {
+            lfoState.push({
+                rate: 0.5,
+                wave: 'Sine',
+                phase: 0,
+                output: 0.0
+            });
+        }
+        
+        const MOD_MATRIX_DEFAULTS = [
+            ['--header-color-hue', 0, 360, 'HDRCOLOR', 'Off'],
+            ['--body-color-hue', 0, 360, 'BDYCOLOR', 'Off'],
+            ['--body-spacing', -2, 10, 'BDYSPC', 'Off'],
+            ['--body-style-a', 0, 4, 'STYLEA', 'Off'],
+            ['--body-style-b', 0, 4, 'STYLEB', 'Off']
+        ];
+
+        let modMatrix = MOD_MATRIX_DEFAULTS.map(([cssVar, min, max, label, source]) => ({
+            cssVar, min, max, label, source,
+            currentValue: min,
+            baseValue: min
+        }));
+        
+        function renderLfoDrivers() {
+            const sineIcon = '<svg viewBox="0 0 187.81 105"><path d="M137.5,105c-8.26,0-16.38-3.82-24.15-11.37-8.53-8.29-16.93-21.43-24.95-39.06-13.52-29.7-27.44-45.14-40.19-44.56-17.83.76-32.83,32.13-37.11,44.16l-1.67,4.71L0,55.54l1.67-4.71C2.39,48.8,19.57,1.24,47.76.02c17.66-.76,33.94,15.72,49.74,50.4,13.29,29.18,27.11,44.57,40.02,44.57.19,0,.38,0,.57,0,18.37-.64,34.1-32.15,38.61-44.24l1.75-4.68,9.37,3.49-1.74,4.68c-.76,2.03-18.83,49.72-47.62,50.74-.32.01-.64.02-.95.02Z"/></svg>';
+            const sawIcon = '<svg viewBox="0 0 186.78 110.18"><polygon points="4.77 110.18 0 101.39 186.78 0 186.78 108.4 176.78 108.4 176.78 16.81 4.77 110.18"/></svg>';
+            const triangleIcon = '<svg viewBox="0 0 189.13 109.45"><polygon points="181.78 109.45 94.57 14.76 7.36 109.45 0 102.67 94.57 0 189.13 102.67 181.78 109.45"/></svg>';
+            const squareIcon = '<svg viewBox="0 0 185 105"><polygon points="185 105 175 105 175 10 97.82 10 97.82 105 0 105 0 95 87.82 95 87.82 0 185 0 185 105"/></svg>';
+            
+            lfoDriversContainer.innerHTML = '';
+            lfoState.forEach((lfo, i) => {
+                const id = `LFO${i + 1}`;
+                const num = i + 1;
+                const div = document.createElement('div');
+                div.className = 'lfo-driver';
+                div.innerHTML = `
+                    <label>${num}</label>
+                    <div class="lfo-shape-select">
+                        <input type="radio" name="${id}Wave" id="${id}Sine" value="Sine" ${lfo.wave === 'Sine' ? 'checked' : ''}><label for="${id}Sine">${sineIcon}</label>
+                        <input type="radio" name="${id}Wave" id="${id}Saw" value="Saw" ${lfo.wave === 'Saw' ? 'checked' : ''}><label for="${id}Saw">${sawIcon}</label>
+                        <input type="radio" name="${id}Wave" id="${id}Square" value="Square" ${lfo.wave === 'Square' ? 'checked' : ''}><label for="${id}Square">${squareIcon}</label>
+                        <input type="radio" name="${id}Wave" id="${id}Triangle" value="Triangle" ${lfo.wave === 'Triangle' ? 'checked' : ''}><label for="${id}Triangle">${triangleIcon}</label>
+                    </div>
+                    <input type="range" id="${id}Rate" min="0.05" max="5.0" step="0.01" value="${lfo.rate}">
+                    <span class="lfo-output" id="${id}Output">${lfo.rate.toFixed(2)}Hz</span>
+                `;
+                lfoDriversContainer.appendChild(div);
+            });
+            setupLfoDriverListeners();
+        }
+
+        function setupLfoDriverListeners() {
+            lfoState.forEach((lfo, i) => {
+                const id = `LFO${i + 1}`;
+                const rateSlider = document.getElementById(`${id}Rate`);
+                const rateOutput = document.getElementById(`${id}Output`);
+                
+                rateSlider.oninput = (e) => {
+                    lfoState[i].rate = parseFloat(e.target.value);
+                    rateOutput.textContent = `${lfoState[i].rate.toFixed(2)}Hz`;
+                };
+
+                const waveRadios = document.querySelectorAll(`input[name="${id}Wave"]`);
+                waveRadios.forEach(radio => {
+                    radio.onchange = (e) => {
+                        lfoState[i].wave = e.target.value;
+                    };
+                });
+            });
+        }
+        
+        function renderModMatrix() {
+            let html = '<div class="matrix-table">';
+            
+            html += '<div class="matrix-header-row">';
+            html += '<div class="matrix-header-cell"></div>';
+            html += '<div class="matrix-header-cell">LFO1</div>';
+            html += '<div class="matrix-header-cell">LFO2</div>';
+            html += '<div class="matrix-header-cell">LFO3</div>';
+            html += '<div class="matrix-header-cell">LFO4</div>';
+            html += '</div>';
+            
+            modMatrix.forEach((mod, i) => {
+                html += '<div class="matrix-row">';
+                html += `<div class="matrix-label-cell">${mod.label}</div>`;
+                
+                for (let lfoNum = 1; lfoNum <= 4; lfoNum++) {
+                    const lfoId = `LFO${lfoNum}`;
+                    const isActive = mod.source === lfoId;
+                    html += `<div class="matrix-button-cell">
+                        <div class="matrix-radio-button ${isActive ? 'active' : ''}" 
+                             data-target="${i}" 
+                             data-lfo="${lfoId}">
+                        </div>
+                    </div>`;
+                }
+                
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            
+            matrixContainer.innerHTML = html;
+            setupMatrixListeners();
+        }
+
+        function setupMatrixListeners() {
+            const radioButtons = document.querySelectorAll('.matrix-radio-button');
+            
+            radioButtons.forEach(button => {
+                button.onclick = () => {
+                    const targetIndex = parseInt(button.getAttribute('data-target'));
+                    const lfoId = button.getAttribute('data-lfo');
+                    
+                    if (modMatrix[targetIndex].source === lfoId) {
+                        modMatrix[targetIndex].source = 'Off';
+                        button.classList.remove('active');
+                    } else {
+                        const rowButtons = document.querySelectorAll(`.matrix-radio-button[data-target="${targetIndex}"]`);
+                        rowButtons.forEach(btn => btn.classList.remove('active'));
+                        
+                        modMatrix[targetIndex].source = lfoId;
+                        button.classList.add('active');
+                    }
+                };
+            });
+        }
+        
+        function getWaveformOutput(phase, type) {
+            switch (type) {
+                case 'Saw': return phase; 
+                case 'Square': return phase < 0.5 ? 0.0 : 1.0;
+                case 'Triangle': return phase < 0.5 ? phase * 2 : 1.0 - ((phase - 0.5) * 2);
+                case 'Sine':
+                default: return (Math.cos(phase * 2 * Math.PI) + 1) / 2;
+            }
+        }
+        
+        function applyBodyStyles() {
+            const bodyText = document.querySelector('.body-copy');
+            const headerElem = document.getElementById('main-header');
+            const bodyElement = document.body;
+            
+            if (!bodyText) return;
+            
+            const styleA = Math.round(parseFloat(root.getPropertyValue('--body-style-a')) || 0);
+            const styleB = Math.round(parseFloat(root.getPropertyValue('--body-style-b')) || 0);
+            
+            const styles = ['normal', 'bold', 'italic', 'underline', 'strikethrough'];
+            
+            const styleAValue = styles[Math.min(styleA, 4)];
+            const styleBValue = styles[Math.min(styleB, 4)];
+            
+            bodyText.style.fontWeight = 'normal';
+            bodyText.style.fontStyle = 'normal';
+            bodyText.style.textDecoration = 'none';
+            
+            if (styleAValue === 'bold') bodyText.style.fontWeight = 'bold';
+            else if (styleAValue === 'italic') bodyText.style.fontStyle = 'italic';
+            else if (styleAValue === 'underline') bodyText.style.textDecoration = 'underline';
+            else if (styleAValue === 'strikethrough') bodyText.style.textDecoration = 'line-through';
+            
+            if (styleBValue === 'bold') bodyText.style.fontWeight = 'bold';
+            else if (styleBValue === 'italic') bodyText.style.fontStyle = 'italic';
+            else if (styleBValue === 'underline') {
+                if (bodyText.style.textDecoration === 'line-through') {
+                    bodyText.style.textDecoration = 'underline line-through';
+                } else {
+                    bodyText.style.textDecoration = 'underline';
+                }
+            }
+            else if (styleBValue === 'strikethrough') {
+                if (bodyText.style.textDecoration === 'underline') {
+                    bodyText.style.textDecoration = 'underline line-through';
+                } else {
+                    bodyText.style.textDecoration = 'line-through';
+                }
+            }
+            
+            if (isExperimentMode) {
+                const bodyHue = parseFloat(root.getPropertyValue('--body-color-hue')) || 0;
+                const headerHue = parseFloat(root.getPropertyValue('--header-color-hue')) || 0;
+                
+                bodyText.style.color = `hsl(${bodyHue}, 100%, 50%)`;
+                bodyElement.style.color = `hsl(${bodyHue}, 100%, 50%)`;
+                
+                if (headerElem) {
+                    headerElem.style.color = `hsl(${headerHue}, 100%, 50%)`;
+                }
+                
+                bodyElement.style.borderTopColor = `hsl(${headerHue}, 100%, 50%)`;
+            }
+        }
+        
+        function updateLinkColors() {
+            if (!isExperimentMode) return;
+            
+            const navLinks = document.querySelectorAll('.nav-links a');
+            const bodyHue = parseFloat(root.getPropertyValue('--body-color-hue')) || 0;
+            
+            const linkHue = (bodyHue + 120) % 360;
+            const linkHoverHue = (bodyHue + 240) % 360;
+            
+            navLinks.forEach(link => {
+                if (!link.matches(':hover')) {
+                    link.style.color = `hsl(${linkHue}, 100%, 50%)`;
+                    link.style.borderBottomColor = `hsl(${linkHue}, 100%, 50%)`;
+                }
+                link.setAttribute('data-hover-hue', linkHoverHue);
+            });
+        }
+        
+        function setupNavLinkHovers() {
+            const navLinks = document.querySelectorAll('.nav-links a');
+            navLinks.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    if (isExperimentMode) {
+                        const hoverHue = parseFloat(this.getAttribute('data-hover-hue')) || 0;
+                        this.style.color = `hsl(${hoverHue}, 100%, 50%)`;
+                        this.style.borderBottomColor = `hsl(${hoverHue}, 100%, 50%)`;
+                    }
+                });
+                
+                link.addEventListener('mouseleave', function() {
+                    if (isExperimentMode) {
+                        const bodyHue = parseFloat(root.getPropertyValue('--body-color-hue')) || 0;
+                        const linkHue = (bodyHue + 120) % 360;
+                        this.style.color = `hsl(${linkHue}, 100%, 50%)`;
+                        this.style.borderBottomColor = `hsl(${linkHue}, 100%, 50%)`;
+                    }
+                });
+            });
+        }
+        
+        let lastGlitchTime = 0;
+        let glitchIndex = 0;
+        let activeGlitchMode = 'Up';
+        
+        const GlitchModes = {
+            'Up': (i) => i % headerChars.length,
+            'Down': (i) => (headerChars.length - 1 - (i % headerChars.length)),
+            'Diverge': (i) => {
+                const mid = Math.floor(headerChars.length / 2);
+                const step = Math.floor(i / 2);
+                if (i % 2 === 0) return Math.min(mid + step, headerChars.length - 1);
+                return Math.max(mid - step, 0);
+            },
+            'Converge': (i) => {
+                const mid = Math.floor(headerChars.length / 2);
+                const total = headerChars.length;
+                const step = Math.floor(i / 2);
+                if (i % 2 === 0) return Math.max(0, step);
+                return Math.min(total - 1 - step, total - 1);
+            },
+            'Random': () => Math.floor(Math.random() * headerChars.length),
+            'AllDiff': null,
+            'AllSame': null
+        };
+        
+        function updateHeaderGlitch(deltaTime) {
+            const divisionToHz = [1, 2, 4, 7, 10, 13, 16, 20];
+            
+            const sliderValue = parseInt(document.getElementById('glitch-speed').value);
+            const speedHz = divisionToHz[sliderValue];
+
+            if (speedHz === 0) return;
+
+            const intervalMs = 1000 / speedHz;
+            
+            activeGlitchMode = document.querySelector('input[name="glitchMode"]:checked').value;
+            
+            if (performance.now() - lastGlitchTime > intervalMs) {
+                lastGlitchTime = performance.now();
+                
+                if (activeGlitchMode === 'AllDiff') {
+                    headerChars.forEach(char => {
+                        const randomFont = DYNAMIC_FONTS[Math.floor(Math.random() * DYNAMIC_FONTS.length)];
+                        char.style.fontFamily = randomFont;
+                    });
+                } else if (activeGlitchMode === 'AllSame') {
+                    const randomFont = DYNAMIC_FONTS[Math.floor(Math.random() * DYNAMIC_FONTS.length)];
+                    headerChars.forEach(char => {
+                        char.style.fontFamily = randomFont;
+                    });
+                } else {
+                    const glitchFunc = GlitchModes[activeGlitchMode];
+                    const charIndex = glitchFunc(glitchIndex);
+                    
+                    const randomFont = DYNAMIC_FONTS[Math.floor(Math.random() * DYNAMIC_FONTS.length)];
+                    if (headerChars[charIndex]) {
+                        headerChars[charIndex].style.fontFamily = randomFont;
+                    }
+                    
+                    const previousIndex = glitchFunc(glitchIndex - 1);
+                    if (glitchIndex > 0 && headerChars[previousIndex]) {
+                       headerChars[previousIndex].style.fontFamily = 'inherit';
+                    }
+
+                    glitchIndex++;
+                    if (glitchIndex >= headerChars.length * 2) {
+                        glitchIndex = 0;
+                    }
+                }
+            }
+        }
+
+        let lastTime = 0;
+
+        function updateModulation(time) {
+            if (!isExperimentMode) {
+                animationFrameId = requestAnimationFrame(updateModulation);
+                return;
+            }
+            
+            const deltaTime = (time - lastTime) / 1000;
+            lastTime = time;
+
+            lfoState.forEach(lfo => {
+                if (lfo.rate > 0) {
+                    lfo.phase = (lfo.phase + (lfo.rate * deltaTime)) % 1;
+                }
+                lfo.output = getWaveformOutput(lfo.phase, lfo.wave);
+            });
+            
+            modMatrix.forEach(mod => {
+                let modulatedValue = mod.baseValue;
+
+                if (mod.source !== 'Off') {
+                    const lfoIndex = parseInt(mod.source.replace('LFO', '')) - 1;
+                    const lfoOutput = lfoState[lfoIndex].output;
+                    
+                    const targetRange = mod.max - mod.min;
+                    modulatedValue = mod.min + (targetRange * lfoOutput);
+                }
+                
+                mod.currentValue = modulatedValue;
+                
+                let unit = '';
+                if (mod.cssVar === '--body-spacing') unit = 'px';
+                else if (mod.cssVar === '--image-hue-rotate') unit = 'deg';
+                
+                root.setProperty(mod.cssVar, `${modulatedValue.toFixed(3)}${unit}`);
+            });
+            
+            applyBodyStyles();
+            updateLinkColors();
+            
+            updateHeaderGlitch(deltaTime);
+            
+            animationFrameId = requestAnimationFrame(updateModulation);
+        }
+
+        const vertexShaderSource = `
+            attribute vec2 position;
+            void main() {
+                gl_Position = vec4(position, 0.0, 1.0);
+            }
+        `;
+        
+        const fragmentShaderSource = `
+            precision highp float;
+            uniform vec2 resolution;
+            uniform float time;
+            uniform int modeR;
+            uniform int modeG;
+            uniform int modeB;
+            uniform float freqR;
+            uniform float freqG;
+            uniform float freqB;
+            uniform float complexity;
+            
+            uniform float timeAccumR;
+            uniform float timeAccumG;
+            uniform float timeAccumB;
+            
+            vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+            vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+            
+            float snoise(vec2 v) {
+                const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+                vec2 i = floor(v + dot(v, C.yy));
+                vec2 x0 = v - i + dot(i, C.xx);
+                vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+                vec4 x12 = x0.xyxy + C.xxzz;
+                x12.xy -= i1;
+                i = mod289(i);
+                vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+                vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+                m = m*m; m = m*m;
+                vec3 x = 2.0 * fract(p * C.www) - 1.0;
+                vec3 h = abs(x) - 0.5;
+                vec3 ox = floor(x + 0.5);
+                vec3 a0 = x - ox;
+                m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+                vec3 g;
+                g.x = a0.x * x0.x + h.x * x0.y;
+                g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+                return 130.0 * dot(m, g);
+            }
+            
+            float snoise3D(vec3 v) {
+                const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+                const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+                
+                vec3 i = floor(v + dot(v, C.yyy));
+                vec3 x0 = v - i + dot(i, C.xxx);
+                
+                vec3 g = step(x0.yzx, x0.xyz);
+                vec3 l = 1.0 - g;
+                vec3 i1 = min(g.xyz, l.zxy);
+                vec3 i2 = max(g.xyz, l.zxy);
+                
+                vec3 x1 = x0 - i1 + C.xxx;
+                vec3 x2 = x0 - i2 + C.yyy;
+                vec3 x3 = x0 - D.yyy;
+                
+                i = mod289(i);
+                vec4 p = permute(permute(permute(
+                    i.z + vec4(0.0, i1.z, i2.z, 1.0))
+                    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+                    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+                
+                float n_ = 0.142857142857;
+                vec3 ns = n_ * D.wyz - D.xzx;
+                vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+                vec4 x_ = floor(j * ns.z);
+                vec4 y_ = floor(j - 7.0 * x_);
+                vec4 x = x_ *ns.x + ns.yyyy;
+                vec4 y = y_ *ns.x + ns.yyyy;
+                vec4 h = 1.0 - abs(x) - abs(y);
+                vec4 b0 = vec4(x.xy, y.xy);
+                vec4 b1 = vec4(x.zw, y.zw);
+                vec4 s0 = floor(b0)*2.0 + 1.0;
+                vec4 s1 = floor(b1)*2.0 + 1.0;
+                vec4 sh = -step(h, vec4(0.0));
+                vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+                vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+                vec3 p0 = vec3(a0.xy, h.x);
+                vec3 p1 = vec3(a0.zw, h.y);
+                vec3 p2 = vec3(a1.xy, h.z);
+                vec3 p3 = vec3(a1.zw, h.w);
+                
+                vec4 norm = inversesqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+                p0 *= norm.x;
+                p1 *= norm.y;
+                p2 *= norm.z;
+                p3 *= norm.w;
+                
+                vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                m = m * m;
+                return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+            }
+            
+            float snoise4D(vec4 v) {
+                float n1 = snoise(v.xy + v.z * 0.1);
+                float n2 = snoise(vec2(v.x, v.z) + v.w * 0.1);
+                float n3 = snoise(vec2(v.y, v.w));
+                return (n1 * 0.5 + n2 * 0.3 + n3 * 0.2) * 0.8;
+            }
+            
+            float random(vec2 st) {
+                return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+            }
+            
+            float getPattern(vec2 pos, float freq, float comp, float timeAccum, int mode) {
+                float value = 0.0;
+                
+                if (mode == -1) {
+                    value = 0.0;
+                } else if (mode == 0) {
+                    value = 0.0;
+                } else if (mode == 1) {
+                    float scale = 0.003;
+                    vec2 p = pos * scale;
+                    
+                    float lineDensity = 2.0 + comp * 18.0;
+                    
+                    float warpAmount = 0.5 + comp * 0.3;
+                    
+                    vec2 warp1 = vec2(
+                        snoise(p * 0.5 + timeAccum * 0.1) * warpAmount,
+                        snoise(p.yx * 0.5 + timeAccum * 0.12) * warpAmount
+                    );
+                    
+                    vec2 warp2 = vec2(
+                        snoise((p + warp1) * 1.0 + timeAccum * 0.08) * warpAmount * 0.6,
+                        snoise((p.yx + warp1) * 1.0 + timeAccum * 0.09) * warpAmount * 0.6
+                    );
+                    
+                    vec2 warpedPos = p + warp1 + warp2;
+                    
+                    float stripe1 = fract(warpedPos.x * lineDensity + timeAccum * 0.5);
+                    stripe1 = step(0.5, stripe1);
+                    
+                    float stripe2 = fract(warpedPos.y * lineDensity + timeAccum * 0.6);
+                    stripe2 = step(0.5, stripe2);
+                    
+                    float stripe3 = fract((warpedPos.x + warpedPos.y) * lineDensity * 0.7 + timeAccum * 0.4);
+                    stripe3 = step(0.5, stripe3);
+                    
+                    float stripe4 = fract((warpedPos.x - warpedPos.y) * lineDensity * 0.7 + timeAccum * 0.55);
+                    stripe4 = step(0.5, stripe4);
+                    
+                    float stripe5 = fract((warpedPos.x * 0.7 + warpedPos.y * 1.3) * lineDensity * 0.5 + timeAccum * 0.45);
+                    stripe5 = step(0.5, stripe5);
+                    
+                    float stripe6 = fract((warpedPos.x * 1.3 - warpedPos.y * 0.7) * lineDensity * 0.5 + timeAccum * 0.52);
+                    stripe6 = step(0.5, stripe6);
+                    
+                    float stripes = (stripe1 + stripe2 + stripe3 + stripe4 + stripe5 + stripe6) / 6.0;
+                    
+                    float interference1 = stripe1 * stripe2;
+                    float interference2 = stripe3 * stripe4;
+                    
+                    stripes = stripes * 0.7 + interference1 * 0.15 + interference2 * 0.15;
+                    
+                    value = clamp(stripes, 0.0, 1.0);
+                } else if (mode == 2) {
+                    float scale = 0.003;
+                    vec2 p = pos * scale;
+                    
+                    float lineDensity = 2.0 + comp * 18.0;
+                    
+                    float lineWidth = 0.08 - comp * 0.04;
+                    
+                    float warpAmount = 0.5 + comp * 0.3;
+                    
+                    vec2 warp1 = vec2(
+                        snoise(p * 0.5 + timeAccum * 0.1) * warpAmount,
+                        snoise(p.yx * 0.5 + timeAccum * 0.12) * warpAmount
+                    );
+                    
+                    vec2 warp2 = vec2(
+                        snoise((p + warp1) * 1.0 + timeAccum * 0.08) * warpAmount * 0.6,
+                        snoise((p.yx + warp1) * 1.0 + timeAccum * 0.09) * warpAmount * 0.6
+                    );
+                    
+                    vec2 warpedPos = p + warp1 + warp2;
+                    
+                    float h = fract(warpedPos.x * lineDensity + timeAccum * 0.5);
+                    float line1 = 1.0 - smoothstep(0.0, lineWidth, abs(h - 0.5) * 2.0);
+                    
+                    float v = fract(warpedPos.y * lineDensity + timeAccum * 0.6);
+                    float line2 = 1.0 - smoothstep(0.0, lineWidth, abs(v - 0.5) * 2.0);
+                    
+                    float d1 = fract((warpedPos.x + warpedPos.y) * lineDensity * 0.7 + timeAccum * 0.4);
+                    float line3 = 1.0 - smoothstep(0.0, lineWidth, abs(d1 - 0.5) * 2.0);
+                    
+                    float d2 = fract((warpedPos.x - warpedPos.y) * lineDensity * 0.7 + timeAccum * 0.55);
+                    float line4 = 1.0 - smoothstep(0.0, lineWidth, abs(d2 - 0.5) * 2.0);
+                    
+                    float d3 = fract((warpedPos.x * 0.7 + warpedPos.y * 1.3) * lineDensity * 0.5 + timeAccum * 0.45);
+                    float line5 = 1.0 - smoothstep(0.0, lineWidth, abs(d3 - 0.5) * 2.0);
+                    
+                    float d4 = fract((warpedPos.x * 1.3 - warpedPos.y * 0.7) * lineDensity * 0.5 + timeAccum * 0.52);
+                    float line6 = 1.0 - smoothstep(0.0, lineWidth, abs(d4 - 0.5) * 2.0);
+                    
+                    float lines = max(line1, max(line2, max(line3, max(line4, max(line5, line6)))));
+                    
+                    value = clamp(lines, 0.0, 1.0);
+                } else if (mode == 3) {
+                    vec2 uv = pos / resolution;
+                    
+                    float gridSize = 2.0 + floor(comp * 14.0);
+                    int totalCells = int(gridSize * gridSize);
+                    
+                    float minDist = 999.0;
+                    float secondMinDist = 999.0;
+                    
+                    for (int i = 0; i < 256; i++) {
+                        if (i >= totalCells) break;
+                        
+                        float gridX = mod(float(i), gridSize);
+                        float gridY = floor(float(i) / gridSize);
+                        
+                        vec2 gridPos = vec2(gridX, gridY) / gridSize;
+                        
+                        gridPos += 0.5 / gridSize;
+                        
+                        float seed = float(i) * 7.123;
+                        vec2 drift = vec2(
+                            sin(timeAccum * 0.3 + seed) * 0.25,
+                            cos(timeAccum * 0.4 + seed + 1.0) * 0.25
+                        );
+                        
+                        vec2 cellCenter = gridPos + drift;
+                        
+                        float dist = length(uv - cellCenter);
+                        
+                        float pulseSpeed = 1.2 + sin(seed) * 0.3;
+                        float pulse = sin(time * pulseSpeed + seed) * 0.12 + 1.0;
+                        dist *= pulse;
+                        
+                        if (dist < minDist) {
+                            secondMinDist = minDist;
+                            minDist = dist;
+                        } else if (dist < secondMinDist) {
+                            secondMinDist = dist;
+                        }
+                    }
+                    
+                    float cellValue = 1.0 - smoothstep(0.0, 0.3, minDist);
+                    
+                    float edgeRatio = minDist / (secondMinDist + 0.001);
+                    float edge = smoothstep(0.92, 1.0, edgeRatio);
+                    
+                    value = cellValue * (1.0 - edge * 0.5);
+                } else if (mode == 4) {
+                    float scale = 0.003;
+                    vec2 p = pos * scale;
+                    
+                    float churnSpeed = 0.015;
+                    float angle = time * churnSpeed;
+                    mat2 rotation = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+                    vec2 rotatedPos = rotation * p;
+                    
+                    float turbIntensity = 0.3 + comp * 1.2;
+                    
+                    float timeZ = timeAccum;
+                    
+                    vec2 warp1 = vec2(
+                        snoise3D(vec3(rotatedPos * 0.5, timeZ * 0.8)) * turbIntensity * 0.8,
+                        snoise3D(vec3(rotatedPos.yx * 0.5, timeZ * 0.9)) * turbIntensity * 0.8
+                    );
+                    
+                    vec2 warp2 = vec2(
+                        snoise3D(vec3((rotatedPos + warp1) * 1.2, timeZ * 1.2)) * turbIntensity * 0.6,
+                        snoise3D(vec3((rotatedPos.yx + warp1) * 1.2, timeZ * 1.3)) * turbIntensity * 0.6
+                    );
+                    
+                    vec2 warp3 = vec2(
+                        snoise3D(vec3((rotatedPos + warp1 + warp2) * 2.0, timeZ * 1.5)) * turbIntensity * 0.4,
+                        snoise3D(vec3((rotatedPos.yx + warp1 + warp2) * 2.0, timeZ * 1.6)) * turbIntensity * 0.4
+                    );
+                    
+                    vec2 warp4 = vec2(
+                        snoise3D(vec3((rotatedPos + warp2 + warp3) * 3.0, timeZ * 1.8)) * turbIntensity * 0.3,
+                        snoise3D(vec3((rotatedPos.yx + warp2 + warp3) * 3.0, timeZ * 1.9)) * turbIntensity * 0.3
+                    );
+                    
+                    float n1 = snoise3D(vec3(rotatedPos + warp1, timeZ));
+                    float n2 = snoise3D(vec3(rotatedPos + warp1 + warp2, timeZ * 1.1));
+                    float n3 = snoise3D(vec3(rotatedPos + warp1 + warp2 + warp3, timeZ * 1.2));
+                    float n4 = snoise3D(vec3(rotatedPos + warp1 + warp2 + warp3 + warp4, timeZ * 1.3));
+                    
+                    float n5 = snoise3D(vec3((rotatedPos + warp1) * 2.5, timeZ * 0.9));
+                    float n6 = snoise3D(vec3((rotatedPos + warp2) * 1.5, timeZ * 1.15));
+                    float n7 = snoise3D(vec3((rotatedPos + warp3) * 3.0, timeZ * 0.85));
+                    
+                    float result = n1 * 0.25 + n2 * 0.22 + n3 * 0.2 + n4 * 0.15 + n5 * 0.08 + n6 * 0.06 + n7 * 0.04;
+                    
+                    result = result * 1.4;
+                    result = clamp(result, -1.0, 1.0);
+                    value = (result + 1.0) * 0.5;
+                } else if (mode == 5) {
+                    float scale = 0.003;
+                    vec2 p = pos * scale;
+                    
+                    float lineCount = 3.0 + comp * 37.0;
+                    
+                    float terrain = 0.0;
+                    float amplitude = 1.0;
+                    float frequency = 1.0;
+                    float totalAmp = 0.0;
+                    
+                    for (int i = 0; i < 4; i++) {
+                        float angle = float(i) * 0.5;
+                        mat2 rotation = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+                        vec2 rotated = rotation * p;
+                        
+                        terrain += snoise3D(vec3(rotated * frequency, timeAccum * 0.8)) * amplitude;
+                        totalAmp += amplitude;
+                        
+                        frequency *= 2.0;
+                        amplitude *= 0.5;
+                    }
+                    
+                    terrain /= totalAmp;
+                    
+                    terrain = (terrain + 1.0) * 0.5;
+                    
+                    float bands = floor(terrain * lineCount) / lineCount;
+                    
+                    float contourEdge = fract(terrain * lineCount);
+                    
+                    float lineThickness = 0.15;
+                    float line = smoothstep(0.0, lineThickness, contourEdge) * 
+                                 smoothstep(1.0, 1.0 - lineThickness, contourEdge);
+                    
+                    value = bands * 0.7 + line * 0.3;
+                } else if (mode == 6) {
+                    float scale = 0.003;
+                    vec2 p = pos * scale;
+                    
+                    float clouds = 0.0;
+                    float amplitude = 1.0;
+                    float frequency = 1.0;
+                    float totalAmp = 0.0;
+                    
+                    for (int i = 0; i < 4; i++) {
+                        float angle = float(i) * 0.7;
+                        mat2 rotation = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+                        vec2 rotated = rotation * p;
+                        
+                        clouds += snoise3D(vec3(rotated * frequency, timeAccum * 0.6)) * amplitude;
+                        totalAmp += amplitude;
+                        
+                        frequency *= 2.0;
+                        amplitude *= 0.5;
+                    }
+                    
+                    clouds /= totalAmp;
+                    clouds = (clouds + 1.0) * 0.5;
+                    
+                    float dotSize = 20.0 - comp * 18.0;
+                    
+                    float warpAmount = 30.0;
+                    vec2 gridWarp = vec2(
+                        snoise(p * 0.3 + timeAccum * 0.1) * warpAmount,
+                        snoise(p.yx * 0.3 + timeAccum * 0.12) * warpAmount
+                    );
+                    
+                    vec2 warpedPos = pos + gridWarp;
+                    
+                    vec2 gridPos = floor(warpedPos / dotSize) * dotSize;
+                    
+                    vec2 cellCenter = gridPos + dotSize * 0.5;
+                    vec2 cellUV = cellCenter / resolution;
+                    vec2 cellP = (cellUV - 0.5) * resolution * scale;
+                    
+                    float cellClouds = 0.0;
+                    float cellAmp = 1.0;
+                    float cellFreq = 1.0;
+                    float cellTotal = 0.0;
+                    for (int i = 0; i < 4; i++) {
+                        float angle = float(i) * 0.7;
+                        mat2 rotation = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+                        vec2 rotated = rotation * cellP;
+                        cellClouds += snoise3D(vec3(rotated * cellFreq, timeAccum * 0.6)) * cellAmp;
+                        cellTotal += cellAmp;
+                        cellFreq *= 2.0;
+                        cellAmp *= 0.5;
+                    }
+                    cellClouds = (cellClouds / cellTotal + 1.0) * 0.5;
+                    
+                    vec2 cellUVLocal = fract(warpedPos / dotSize);
+                    float dotDist = length(cellUVLocal - 0.5);
+                    float dotRadius = cellClouds * 0.5;
+                    float result = 1.0 - smoothstep(dotRadius - 0.05, dotRadius, dotDist);
+                    
+                    value = clamp(result, 0.0, 1.0);
+                }
+                
+                return clamp(value, 0.0, 1.0);
+            }
+            
+            void main() {
+                vec2 pos = gl_FragCoord.xy;
+                float complexityNorm = complexity / 100.0;
+                
+                float r = getPattern(pos, freqR, complexityNorm, timeAccumR, modeR);
+                float g = getPattern(pos, freqG, complexityNorm, timeAccumG, modeG);
+                float b = getPattern(pos, freqB, complexityNorm, timeAccumB, modeB);
+                
+                gl_FragColor = vec4(r, g, b, 1.0);
+            }
+        `;
+        
+        const lumaSerpentVertexShader = `
+            attribute vec2 position;
+            attribute vec2 texCoord;
+            
+            uniform sampler2D imageTexture;
+            uniform float frequency;
+            uniform float resonance;
+            uniform float drive;
+            uniform float time;
+            uniform vec2 resolution;
+            
+            varying vec2 vTexCoord;
+            varying float vBrightness;
+            varying float vDepth;
+            
+            float hash(float n) {
+                return fract(sin(n) * 43758.5453123);
+            }
+            
+            void main() {
+                vTexCoord = texCoord;
+                
+                vec4 texColor = texture2D(imageTexture, texCoord);
+                float luminance = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+                vBrightness = luminance;
+                
+                vec3 pos = vec3(position - 0.5, 0.0);
+                
+                float zDepth = (luminance - 0.5) * resonance * 5.0;
+                pos.z = -zDepth;
+                vDepth = abs(zDepth);
+                
+                float rowPosition = texCoord.y;
+                
+                float snakeSpeed = 0.5 + drive * 3.0;
+                float beatTime = time * snakeSpeed;
+                float beat = floor(beatTime);
+                float beatPhase = fract(beatTime);
+                
+                float direction = mod(beat, 2.0) == 0.0 ? -1.0 : 1.0;
+                
+                float wavePosition = beatPhase;
+                float rowOffset = smoothstep(wavePosition - 0.1, wavePosition, rowPosition);
+                
+                float amplitude = 0.05 + luminance * 0.15;
+                
+                float xDisplacement = direction * amplitude * rowOffset;
+                
+                if (drive > 0.4) {
+                    float chaos = (drive - 0.4) / 0.6;
+                    
+                    float rowIndex = floor(rowPosition * 20.0);
+                    float rowRandom = hash(rowIndex + beat);
+                    
+                    if (chaos > rowRandom) {
+                        float randomPhase = hash(rowIndex * 7.13 + time * 0.3);
+                        float randomDir = hash(rowIndex * 3.71 + beat) > 0.5 ? 1.0 : -1.0;
+                        float randomAmp = 0.1 + hash(rowIndex * 5.33) * 0.3;
+                        
+                        xDisplacement = randomDir * randomAmp * sin(randomPhase * 6.28);
+                        
+                        pos.z += (hash(rowIndex * 11.17 + time) - 0.5) * chaos * 2.0;
+                        
+                        if (chaos > 0.7) {
+                            pos.y += (hash(rowIndex * 13.37 + time * 0.5) - 0.5) * (chaos - 0.7) * 0.5;
+                        }
+                    }
+                }
+                
+                pos.x += xDisplacement;
+                
+                float fov = 1.5;
+                float perspective = fov / (fov - pos.z);
+                
+                vec2 projected = pos.xy * perspective;
+                
+                projected *= 0.8;
+                
+                gl_Position = vec4(projected, pos.z * 0.1, 1.0);
+                
+                float baseSize = 2.0 + (1.0 - frequency) * 8.0;
+                gl_PointSize = baseSize * perspective;
+            }
+        `;
+        
+        const lumaSerpentFragmentShader = `
+            precision mediump float;
+            
+            uniform sampler2D imageTexture;
+            
+            varying vec2 vTexCoord;
+            varying float vBrightness;
+            varying float vDepth;
+            
+            void main() {
+                vec4 texColor = texture2D(imageTexture, vTexCoord);
+                
+                float fogAmount = clamp(vDepth / 3.0, 0.0, 0.7);
+                vec3 foggedColor = mix(texColor.rgb, vec3(0.0), fogAmount);
+                
+                float depthBoost = 1.0 - fogAmount * 0.3;
+                
+                gl_FragColor = vec4(foggedColor * depthBoost, 1.0);
+            }
+        `;
+        
+        // =====================================================
+        // FERRO SPLASH SHADER (Image Filter - BLOB Mode)
+        // =====================================================
+        
+        const ferroSplashVertexShader = `
+            attribute vec3 position;
+            attribute vec3 normal;
+            
+            uniform sampler2D imageTexture;
+            uniform float frequency;
+            uniform float resonance;
+            uniform float drive;
+            uniform float time;
+            uniform mat4 modelViewMatrix;
+            uniform mat4 projectionMatrix;
+            
+            varying vec3 vNormal;
+            varying vec3 vPosition;
+            varying float vDisplacement;
+            
+            // 3D Simplex noise (reuse from background shader)
+            vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+            
+            float snoise3D(vec3 v) {
+                const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+                const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+                
+                vec3 i = floor(v + dot(v, C.yyy));
+                vec3 x0 = v - i + dot(i, C.xxx);
+                
+                vec3 g = step(x0.yzx, x0.xyz);
+                vec3 l = 1.0 - g;
+                vec3 i1 = min(g.xyz, l.zxy);
+                vec3 i2 = max(g.xyz, l.zxy);
+                
+                vec3 x1 = x0 - i1 + C.xxx;
+                vec3 x2 = x0 - i2 + C.yyy;
+                vec3 x3 = x0 - D.yyy;
+                
+                i = mod289(i);
+                vec4 p = permute(permute(permute(
+                    i.z + vec4(0.0, i1.z, i2.z, 1.0))
+                    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+                    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+                
+                float n_ = 0.142857142857;
+                vec3 ns = n_ * D.wyz - D.xzx;
+                vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+                vec4 x_ = floor(j * ns.z);
+                vec4 y_ = floor(j - 7.0 * x_);
+                vec4 x = x_ *ns.x + ns.yyyy;
+                vec4 y = y_ *ns.x + ns.yyyy;
+                vec4 h = 1.0 - abs(x) - abs(y);
+                vec4 b0 = vec4(x.xy, y.xy);
+                vec4 b1 = vec4(x.zw, y.zw);
+                vec4 s0 = floor(b0)*2.0 + 1.0;
+                vec4 s1 = floor(b1)*2.0 + 1.0;
+                vec4 sh = -step(h, vec4(0.0));
+                vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+                vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+                vec3 p0 = vec3(a0.xy, h.x);
+                vec3 p1 = vec3(a0.zw, h.y);
+                vec3 p2 = vec3(a1.xy, h.z);
+                vec3 p3 = vec3(a1.zw, h.w);
+                
+                vec4 norm = inversesqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+                p0 *= norm.x;
+                p1 *= norm.y;
+                p2 *= norm.z;
+                p3 *= norm.w;
+                
+                vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                m = m * m;
+                return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+            }
+            
+            float hash(float n) {
+                return fract(sin(n) * 43758.5453123);
+            }
+            
+            void main() {
+                vec3 pos = position;
+                vec3 norm = normal;
+                
+                // FREQ controls noise complexity (1-5 octaves)
+                float octaves = 1.0 + frequency * 4.0;
+                
+                // Multi-octave FBM displacement
+                float displacement = 0.0;
+                float amplitude = 1.0;
+                float freq = 1.0;
+                float totalAmp = 0.0;
+                
+                // Animation speed based on DRIVE
+                float animSpeed = 0.5 + drive * 2.5;
+                float t = time * animSpeed;
+                
+                // Base morphing (always active)
+                for (int i = 0; i < 5; i++) {
+                    if (float(i) >= octaves) break;
+                    
+                    vec3 samplePos = pos * freq + vec3(t * 0.3, t * 0.4, t * 0.35);
+                    displacement += snoise3D(samplePos) * amplitude;
+                    totalAmp += amplitude;
+                    
+                    freq *= 2.0;
+                    amplitude *= 0.5;
+                }
+                
+                displacement /= totalAmp;
+                
+                // FREQ controls base splash shape (0.2 to 1.0 base deformation)
+                float baseDeformation = 0.2 + frequency * 0.8;
+                
+                // RES controls spike magnitude on top of base shape
+                float spikeMagnitude = baseDeformation + (resonance * 2.0);
+                
+                // Apply displacement along normal
+                float finalDisplacement = displacement * spikeMagnitude;
+                
+                // DRIVE-based chaos (40-100%)
+                if (drive > 0.4) {
+                    float chaos = (drive - 0.4) / 0.6;
+                    
+                    // Vertex hash for per-vertex randomness
+                    float vertHash = hash(position.x * 127.3 + position.y * 311.7 + position.z * 74.2);
+                    
+                    // Random spike bursts
+                    float burstPhase = fract(t * (1.0 + vertHash * 2.0));
+                    float burst = step(burstPhase, chaos * 0.3) * (1.0 + chaos * 2.0);
+                    finalDisplacement += burst * vertHash;
+                    
+                    // Geometry stuttering at high chaos
+                    if (chaos > 0.6) {
+                        float stutter = step(0.5, fract(t * 10.0 + vertHash * 5.0));
+                        finalDisplacement *= mix(1.0, 0.3 + vertHash * 0.7, (chaos - 0.6) * 2.5 * stutter);
+                    }
+                    
+                    // Vertex flickering (holes in mesh)
+                    if (chaos > 0.8 && vertHash < (chaos - 0.8) * 2.0) {
+                        float flicker = step(0.7, fract(t * 15.0 + vertHash * 10.0));
+                        finalDisplacement *= flicker;
+                    }
+                }
+                
+                pos += norm * finalDisplacement;
+                vDisplacement = finalDisplacement;
+                
+                // Slight bobbing motion (camera stays still, object bobs)
+                float bobAmount = 0.1 + drive * 0.2;
+                pos.y += sin(t * 2.0) * bobAmount;
+                
+                // Transform to view space for matcap
+                vec4 viewPos = modelViewMatrix * vec4(pos, 1.0);
+                vPosition = viewPos.xyz;
+                
+                // Transform normal to view space
+                vec3 viewNormal = normalize(mat3(modelViewMatrix) * norm);
+                vNormal = viewNormal;
+                
+                gl_Position = projectionMatrix * viewPos;
+            }
+        `;
+        
+        const ferroSplashFragmentShader = `
+            precision mediump float;
+            
+            uniform sampler2D imageTexture;
+            
+            varying vec3 vNormal;
+            varying vec3 vPosition;
+            varying float vDisplacement;
+            
+            void main() {
+                // Matcap technique: use view-space normal to sample texture
+                // Map normal XY (-1 to 1) to UV (0 to 1)
+                vec2 matcapUV = vNormal.xy * 0.5 + 0.5;
+                
+                // Sample image as matcap (chrome reflection)
+                vec4 matcapColor = texture2D(imageTexture, matcapUV);
+                
+                // Metallic sheen (brighten based on view angle)
+                float fresnel = pow(1.0 - abs(vNormal.z), 2.0);
+                vec3 metallicColor = matcapColor.rgb * (0.8 + fresnel * 0.4);
+                
+                // Subtle displacement-based shading (spikes slightly brighter)
+                float spikeHighlight = clamp(vDisplacement * 0.3, 0.0, 0.3);
+                metallicColor += spikeHighlight;
+                
+                gl_FragColor = vec4(metallicColor, 1.0);
+            }
+        `;
+        
+        // =====================================================
+        // FRACTAL VOID SHADER (Image Filter - VOID Mode)
+        // =====================================================
+        
+        const fractalVoidVertexShader = `
+            attribute vec2 position;
+            attribute vec2 texCoord;
+            
+            varying vec2 vTexCoord;
+            
+            void main() {
+                vTexCoord = texCoord;
+                gl_Position = vec4(position * 2.0 - 1.0, 0.0, 1.0);
+            }
+        `;
+        
+        const fractalVoidFragmentShader = `
+            precision highp float;
+            
+            uniform sampler2D imageTexture;
+            uniform float frequency;
+            uniform float resonance;
+            uniform float drive;
+            uniform float time;
+            uniform vec2 resolution;
+            
+            varying vec2 vTexCoord;
+            
+            // 2D Simplex noise
+            vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+            
+            float snoise(vec2 v) {
+                const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+                vec2 i = floor(v + dot(v, C.yy));
+                vec2 x0 = v - i + dot(i, C.xx);
+                vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+                vec4 x12 = x0.xyxy + C.xxzz;
+                x12.xy -= i1;
+                i = mod289(i);
+                vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+                vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+                m = m*m; m = m*m;
+                vec3 x = 2.0 * fract(p * C.www) - 1.0;
+                vec3 h = abs(x) - 0.5;
+                vec3 ox = floor(x + 0.5);
+                vec3 a0 = x - ox;
+                m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+                vec3 g;
+                g.x = a0.x * x0.x + h.x * x0.y;
+                g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+                return 130.0 * dot(m, g);
+            }
+            
+            float hash(float n) {
+                return fract(sin(n) * 43758.5453123);
+            }
+            
+            // Rotate 2D vector
+            vec2 rotate(vec2 v, float angle) {
+                float s = sin(angle);
+                float c = cos(angle);
+                return vec2(c * v.x - s * v.y, s * v.x + c * v.y);
+            }
+            
+            void main() {
+                vec2 uv = vTexCoord;
+                
+                // Number of void regions based on FREQ (1 to 8)
+                int voidCount = int(1.0 + frequency * 7.0);
+                
+                // Iteration count for Droste recursion (2 to 20)
+                int iterations = int(2.0 + frequency * 18.0);
+                
+                // Animation speed and chaos
+                float animSpeed = 0.3 + drive * 2.0;
+                float chaos = smoothstep(0.4, 1.0, drive);
+                
+                // Accumulated warping
+                vec2 warpedUV = uv;
+                float totalWarp = 0.0;
+                
+                // Process each void region
+                for (int v = 0; v < 8; v++) {
+                    if (v >= voidCount) break;
+                    
+                    float voidSeed = float(v) * 13.7;
+                    
+                    // Void center position (moves over time)
+                    vec2 voidCenter = vec2(
+                        0.5 + snoise(vec2(time * animSpeed * 0.3 + voidSeed, 0.0)) * 0.3,
+                        0.5 + snoise(vec2(0.0, time * animSpeed * 0.3 + voidSeed + 10.0)) * 0.3
+                    );
+                    
+                    // Chaos glitching - erratic jumps
+                    if (chaos > 0.5) {
+                        float jumpSpeed = 5.0 + chaos * 10.0;
+                        float jumpPhase = floor(time * jumpSpeed + voidSeed);
+                        voidCenter += vec2(
+                            hash(jumpPhase * 7.13) - 0.5,
+                            hash(jumpPhase * 3.71) - 0.5
+                        ) * chaos * 0.3;
+                    }
+                    
+                    // Distance to void center
+                    vec2 toVoid = warpedUV - voidCenter;
+                    float dist = length(toVoid);
+                    
+                    // Void radius based on RES (0.05 to 0.4)
+                    float voidRadius = 0.05 + resonance * 0.35;
+                    
+                    // Void influence (stronger near center)
+                    float influence = smoothstep(voidRadius * 2.0, 0.0, dist);
+                    
+                    if (influence > 0.01) {
+                        // Droste recursive warping
+                        vec2 localUV = toVoid;
+                        
+                        for (int i = 0; i < 20; i++) {
+                            if (i >= iterations) break;
+                            
+                            float iterScale = 1.0 + float(i) * 0.1;
+                            
+                            // Rotation per iteration
+                            float rotSpeed = 2.0 + chaos * 8.0;
+                            float angle = time * rotSpeed + float(i) * 0.5 + voidSeed;
+                            localUV = rotate(localUV, angle * influence * 0.1);
+                            
+                            // Scale toward center (Droste zoom)
+                            float scale = 1.5 + resonance * 1.5;
+                            localUV *= scale;
+                            
+                            // Offset for spiral
+                            localUV += vec2(0.05) * influence;
+                        }
+                        
+                        // Apply warped coordinates
+                        warpedUV = mix(warpedUV, voidCenter + localUV, influence * (0.5 + resonance * 0.5));
+                        totalWarp += influence;
+                    }
+                }
+                
+                // Pixelation effect near voids
+                if (totalWarp > 0.1) {
+                    float pixelSize = 0.002 + totalWarp * 0.02 + chaos * 0.03;
+                    warpedUV = floor(warpedUV / pixelSize) * pixelSize;
+                }
+                
+                // Glitch streaking at high chaos
+                if (chaos > 0.6) {
+                    float streakPhase = fract(time * 10.0);
+                    if (streakPhase < 0.3) {
+                        float streakDir = hash(floor(time * 10.0));
+                        if (streakDir < 0.5) {
+                            warpedUV.x = floor(warpedUV.x * 50.0) / 50.0;
+                        } else {
+                            warpedUV.y = floor(warpedUV.y * 50.0) / 50.0;
+                        }
+                    }
+                }
+                
+                // Sample texture with warped UVs
+                vec4 color = texture2D(imageTexture, fract(warpedUV));
+                
+                // Darken void centers (aperture effect)
+                float darkness = smoothstep(0.0, 1.0, totalWarp) * resonance;
+                color.rgb *= 1.0 - darkness * 0.7;
+                
+                gl_FragColor = color;
+            }
+        `;
+        
+        // =====================================================
+        // GLITCH DITHER SHADER (Image Filter - VOID Mode - REPLACEMENT)
+        // =====================================================
+        
+        const glitchDitherVertexShader = `
+            attribute vec2 position;
+            attribute vec2 texCoord;
+            
+            varying vec2 vTexCoord;
+            
+            void main() {
+                vTexCoord = texCoord;
+                gl_Position = vec4(position * 2.0 - 1.0, 0.0, 1.0);
+            }
+        `;
+        
+        const glitchDitherFragmentShader = `
+            precision highp float;
+            
+            uniform sampler2D imageTexture;
+            uniform float frequency;
+            uniform float resonance;
+            uniform float drive;
+            uniform float time;
+            uniform vec2 resolution;
+            
+            varying vec2 vTexCoord;
+            
+            float hash(float n) {
+                return fract(sin(n) * 43758.5453123);
+            }
+            
+            vec2 hash2(vec2 p) {
+                return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453);
+            }
+            
+            // Character atlas - returns brightness for character at position
+            float getCharacter(int charIndex, vec2 localUV) {
+                float brightness = 0.0;
+                int modChar = int(mod(float(charIndex), 12.0));
+                
+                if (modChar == 0) { // Full block █
+                    brightness = 1.0;
+                } else if (modChar == 1) { // Medium shade ▓
+                    brightness = step(0.5, fract(localUV.x * 8.0 + localUV.y * 8.0));
+                } else if (modChar == 2) { // Light shade ▒
+                    brightness = step(0.7, fract(localUV.x * 4.0 + localUV.y * 4.0));
+                } else if (modChar == 3) { // Dots ░
+                    vec2 grid = fract(localUV * 4.0);
+                    brightness = step(length(grid - 0.5), 0.2);
+                } else if (modChar == 4) { // Horizontal lines
+                    brightness = step(0.5, fract(localUV.y * 8.0));
+                } else if (modChar == 5) { // Vertical lines
+                    brightness = step(0.5, fract(localUV.x * 8.0));
+                } else if (modChar == 6) { // Cross hatch
+                    float h = step(0.5, fract(localUV.y * 8.0));
+                    float v = step(0.5, fract(localUV.x * 8.0));
+                    brightness = max(h, v);
+                } else if (modChar == 7) { // Diagonal /
+                    brightness = step(0.4, fract((localUV.x + localUV.y) * 8.0));
+                } else if (modChar == 8) { // Diagonal \
+                    brightness = step(0.4, fract((localUV.x - localUV.y) * 8.0));
+                } else if (modChar == 9) { // Circle ○
+                    brightness = 1.0 - smoothstep(0.3, 0.5, length(localUV - 0.5));
+                } else if (modChar == 10) { // Solid circle ●
+                    brightness = 1.0 - smoothstep(0.0, 0.4, length(localUV - 0.5));
+                } else { // Square brackets
+                    brightness = step(abs(localUV.x - 0.5), 0.1) + step(abs(localUV.y - 0.5), 0.1);
+                }
+                
+                return clamp(brightness, 0.0, 1.0);
+            }
+            
+            vec3 quantizeColor(vec3 color, float levels) {
+                return floor(color * levels) / levels;
+            }
+            
+            void main() {
+                vec2 uv = vTexCoord;
+                vec2 pixelCoord = uv * resolution;
+                
+                // === CONTINUOUS PARAMETERS (no discrete layers) ===
+                float blockSize = 2.0 + (1.0 - frequency) * 30.0; // 2 to 32px
+                float intensity = resonance; // 0-1 continuous
+                float chaos = drive; // 0-1 continuous
+                float animSpeed = 0.5 + chaos * 5.0;
+                
+                vec2 finalUV = uv;
+                vec3 finalColor = vec3(0.0);
+                
+                // === EFFECT 1: BLOCK DISPLACEMENT (Always Active) ===
+                vec2 blockCoord = floor(pixelCoord / blockSize) * blockSize;
+                float blockHash = hash(blockCoord.x + blockCoord.y * 1000.0 + floor(time * animSpeed * 0.5));
+                
+                // Base displacement scales with intensity
+                float displaceAmount = intensity * blockSize * 2.0;
+                
+                // "Escape velocity" at high chaos - blocks fly off
+                if (chaos > 0.4) {
+                    float escapeChance = (chaos - 0.4) / 0.6;
+                    if (blockHash > (1.0 - escapeChance * 0.3)) {
+                        // This block is escaping
+                        float escapeDir = hash(blockHash + 0.1) * 6.28;
+                        float escapeSpeed = 1.0 + (hash(blockHash + 0.2) * 3.0);
+                        displaceAmount *= escapeSpeed;
+                        
+                        // Directional escape (creates streaks)
+                        vec2 escapeVector = vec2(cos(escapeDir), sin(escapeDir)) * escapeSpeed;
+                        finalUV += escapeVector * (blockHash - 0.5) * intensity * chaos * 0.2 / resolution;
+                    }
+                }
+                
+                // Horizontal displacement (always active, scales with intensity)
+                float xDisplace = (blockHash - 0.5) * displaceAmount * (0.1 + chaos * 0.9);
+                finalUV.x += xDisplace / resolution.x;
+                
+                // Vertical glitch (starts at 40% drive)
+                if (chaos > 0.4 && hash(blockHash + 0.5) > (1.0 - (chaos - 0.4))) {
+                    finalUV.y += (hash(blockHash + 0.7) - 0.5) * blockSize * chaos / resolution.y;
+                }
+                
+                // === EFFECT 2: RGB CHANNEL SEPARATION (Always Active) ===
+                // Scale from 0.5px to 20px
+                float separation = 0.5 + intensity * 19.5;
+                // Chaos adds jitter
+                separation *= (1.0 + chaos * 0.5);
+                
+                vec2 offset = vec2(separation / resolution.x, 0.0);
+                
+                // At high chaos, offset direction changes
+                if (chaos > 0.5) {
+                    // Glitchy jumping instead of smooth rocking
+                    float jumpSpeed = 2.0 + (chaos - 0.5) * 10.0; // 2Hz to 12Hz
+                    float jumpPhase = floor(time * animSpeed * jumpSpeed);
+                    
+                    // Random angle per jump
+                    float angle = hash(jumpPhase) * 6.28;
+                    float distance = separation * (0.5 + hash(jumpPhase + 0.5) * 1.5);
+                    
+                    offset = vec2(cos(angle), sin(angle)) * distance / resolution.x;
+                }
+                
+                float r = texture2D(imageTexture, fract(finalUV - offset)).r;
+                float g = texture2D(imageTexture, fract(finalUV)).g;
+                float b = texture2D(imageTexture, fract(finalUV + offset)).b;
+                
+                finalColor = vec3(r, g, b);
+                
+                // === EFFECT 3: SCANLINES (Always Active) ===
+                float scanlineFreq = 2.0 + frequency * 6.0;
+                float scanlinePhase = pixelCoord.y * scanlineFreq + time * animSpeed * 2.0;
+                float scanline = sin(scanlinePhase) * 0.5 + 0.5;
+                scanline = smoothstep(0.4, 0.6, scanline);
+                
+                // Scanline intensity scales from subtle to strong
+                float scanlineIntensity = 0.05 + intensity * 0.95;
+                finalColor *= 1.0 - (scanline * scanlineIntensity * 0.3);
+                
+                // Color channel rotation on scanlines (starts at 50% drive)
+                if (chaos > 0.5) {
+                    float colorShift = sin(time * animSpeed * 3.0) * 0.5 + 0.5;
+                    float rotationAmount = (chaos - 0.5) * 2.0;
+                    finalColor = mix(finalColor, finalColor.gbr, scanline * rotationAmount * colorShift);
+                }
+                
+                // === EFFECT 4: PALETTE REDUCTION (Always Active) ===
+                // Scale from 256 colors down to 4
+                float paletteSize = 256.0 - (intensity * 252.0);
+                // Chaos reduces palette further
+                paletteSize = max(4.0, paletteSize - chaos * 100.0);
+                
+                finalColor = quantizeColor(finalColor, paletteSize);
+                
+                // === RAINBOW GLITCH BANDS (starts at 70% drive) ===
+                if (chaos > 0.7) {
+                    float bandChance = (chaos - 0.7) / 0.3;
+                    float rowHash = hash(floor(pixelCoord.y / blockSize) + floor(time * animSpeed * 3.0));
+                    
+                    if (rowHash > (1.0 - bandChance * 0.4)) {
+                        // This row is a rainbow band
+                        float rainbow = fract(pixelCoord.x / resolution.x + time * animSpeed * 0.5 + rowHash);
+                        vec3 rainbowColor = vec3(
+                            sin(rainbow * 6.28) * 0.5 + 0.5,
+                            sin(rainbow * 6.28 + 2.09) * 0.5 + 0.5,
+                            sin(rainbow * 6.28 + 4.18) * 0.5 + 0.5
+                        );
+                        
+                        // Band glitches position vertically
+                        float glitchOffset = (hash(rowHash + 0.5) - 0.5) * chaos * 50.0;
+                        if (abs(mod(pixelCoord.y + glitchOffset, blockSize * 3.0) - blockSize * 1.5) < blockSize * 0.5) {
+                            finalColor = mix(finalColor, rainbowColor, chaos * 0.7);
+                        }
+                    }
+                }
+                
+                // === EFFECT 5: ASCII DITHERING (Always Active) ===
+                // Coverage scales from 5% to 100%
+                float asciiCoverage = 0.05 + intensity * 0.95;
+                
+                vec2 charGrid = floor(pixelCoord / blockSize);
+                vec2 charLocal = fract(pixelCoord / blockSize);
+                
+                float charHash = hash(charGrid.x + charGrid.y * 100.0);
+                
+                // Only process this character cell if within coverage
+                if (charHash < asciiCoverage) {
+                    // Character index - flickers at high chaos
+                    int charIndex = int(charHash * 12.0);
+                    if (chaos > 0.5) {
+                        float flickerSpeed = 5.0 + chaos * 15.0;
+                        charIndex = int(mod(charHash * 12.0 + floor(time * flickerSpeed), 12.0));
+                    }
+                    
+                    float charBrightness = getCharacter(charIndex, charLocal);
+                    
+                    // Get average color of this character cell
+                    vec2 cellCenter = (charGrid + 0.5) * blockSize / resolution;
+                    vec3 cellColor = texture2D(imageTexture, cellCenter).rgb;
+                    float cellLuminance = dot(cellColor, vec3(0.299, 0.587, 0.114));
+                    
+                    // Dither: replace based on brightness match
+                    // Characters inherit the color of underlying pixels
+                    vec3 charColor = cellColor * charBrightness;
+                    
+                    // Mix amount scales with intensity
+                    float ditherAmount = 0.3 + intensity * 0.7;
+                    
+                    // Replace darker/lighter areas appropriately
+                    if (abs(charBrightness - cellLuminance) < 0.5 + intensity * 0.3) {
+                        finalColor = mix(finalColor, charColor, ditherAmount * (0.5 + chaos * 0.5));
+                    }
+                }
+                
+                // === WHITE SCANLINES (starts at 80% drive) ===
+                if (chaos > 0.8) {
+                    float whiteScanFreq = 20.0 + chaos * 40.0;
+                    float whiteScan = step(0.95, fract(pixelCoord.y / whiteScanFreq + time * animSpeed * 5.0));
+                    finalColor = mix(finalColor, vec3(1.0), whiteScan * (chaos - 0.8) * 5.0);
+                }
+                
+                // === EXTREME CHAOS (100% drive) ===
+                if (chaos > 0.95) {
+                    // Freeze frame stutter
+                    float freezeFrame = floor(time * animSpeed * 10.0);
+                    if (hash(freezeFrame) > 0.7) {
+                        vec2 glitchOffset = hash2(vec2(freezeFrame)) - 0.5;
+                        finalColor = texture2D(imageTexture, fract(uv + glitchOffset * 0.3)).rgb;
+                    }
+                    
+                    // Random inversions
+                    if (hash(floor(pixelCoord.y / 10.0) + time * 30.0) > 0.85) {
+                        finalColor = 1.0 - finalColor;
+                    }
+                }
+                
+                gl_FragColor = vec4(finalColor, 1.0);
+            }
+        `;
+        
+        function initWebGL() {
+            if (!gl) return false;
+            
+            const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vertexShader, vertexShaderSource);
+            gl.compileShader(vertexShader);
+            
+            if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+                console.error('Vertex shader error:', gl.getShaderInfoLog(vertexShader));
+                return false;
+            }
+            
+            const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fragmentShader, fragmentShaderSource);
+            gl.compileShader(fragmentShader);
+            
+            if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+                console.error('Fragment shader error:', gl.getShaderInfoLog(fragmentShader));
+                return false;
+            }
+            
+            shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+            
+            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                console.error('Program link error:', gl.getProgramInfoLog(shaderProgram));
+                return false;
+            }
+            
+            gl.useProgram(shaderProgram);
+            
+            const positions = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+            
+            const positionLocation = gl.getAttribLocation(shaderProgram, 'position');
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            
+            uniformLocations = {
+                resolution: gl.getUniformLocation(shaderProgram, 'resolution'),
+                time: gl.getUniformLocation(shaderProgram, 'time'),
+                modeR: gl.getUniformLocation(shaderProgram, 'modeR'),
+                modeG: gl.getUniformLocation(shaderProgram, 'modeG'),
+                modeB: gl.getUniformLocation(shaderProgram, 'modeB'),
+                freqR: gl.getUniformLocation(shaderProgram, 'freqR'),
+                freqG: gl.getUniformLocation(shaderProgram, 'freqG'),
+                freqB: gl.getUniformLocation(shaderProgram, 'freqB'),
+                complexity: gl.getUniformLocation(shaderProgram, 'complexity'),
+                timeAccumR: gl.getUniformLocation(shaderProgram, 'timeAccumR'),
+                timeAccumG: gl.getUniformLocation(shaderProgram, 'timeAccumG'),
+                timeAccumB: gl.getUniformLocation(shaderProgram, 'timeAccumB')
+            };
+            
+            console.log('WebGL initialised!');
+            return true;
+        }
+        
+        function initLumaSerpent() {
+            if (!imgFilterGL) {
+                console.warn('Cannot init LUMA SERPENT: no WebGL context');
+                return false;
+            }
+            
+            const vertShader = imgFilterGL.createShader(imgFilterGL.VERTEX_SHADER);
+            imgFilterGL.shaderSource(vertShader, lumaSerpentVertexShader);
+            imgFilterGL.compileShader(vertShader);
+            
+            if (!imgFilterGL.getShaderParameter(vertShader, imgFilterGL.COMPILE_STATUS)) {
+                console.error('LUMA SERPENT vertex shader error:', imgFilterGL.getShaderInfoLog(vertShader));
+                return false;
+            }
+            
+            const fragShader = imgFilterGL.createShader(imgFilterGL.FRAGMENT_SHADER);
+            imgFilterGL.shaderSource(fragShader, lumaSerpentFragmentShader);
+            imgFilterGL.compileShader(fragShader);
+            
+            if (!imgFilterGL.getShaderParameter(fragShader, imgFilterGL.COMPILE_STATUS)) {
+                console.error('LUMA SERPENT fragment shader error:', imgFilterGL.getShaderInfoLog(fragShader));
+                return false;
+            }
+            
+            const program = imgFilterGL.createProgram();
+            imgFilterGL.attachShader(program, vertShader);
+            imgFilterGL.attachShader(program, fragShader);
+            imgFilterGL.linkProgram(program);
+            
+            if (!imgFilterGL.getProgramParameter(program, imgFilterGL.LINK_STATUS)) {
+                console.error('LUMA SERPENT program link error:', imgFilterGL.getProgramInfoLog(program));
+                return false;
+            }
+            
+            imageFilterState.shaderPrograms.comb = program;
+            
+            console.log('LUMA SERPENT shader compiled successfully');
+            return true;
+        }
+        
+        // =====================================================
+        // FERRO SPLASH (MORPH Mode) Functions
+        // =====================================================
+        
+        function createIcosphere(subdivisions) {
+            const t = (1.0 + Math.sqrt(5.0)) / 2.0;
+            
+            // Initial icosahedron vertices
+            let vertices = [
+                -1, t, 0,   1, t, 0,   -1, -t, 0,   1, -t, 0,
+                0, -1, t,   0, 1, t,   0, -1, -t,   0, 1, -t,
+                t, 0, -1,   t, 0, 1,   -t, 0, -1,   -t, 0, 1
+            ];
+            
+            // Initial faces
+            let indices = [
+                0, 11, 5,   0, 5, 1,   0, 1, 7,   0, 7, 10,   0, 10, 11,
+                1, 5, 9,   5, 11, 4,   11, 10, 2,   10, 7, 6,   7, 1, 8,
+                3, 9, 4,   3, 4, 2,   3, 2, 6,   3, 6, 8,   3, 8, 9,
+                4, 9, 5,   2, 4, 11,   6, 2, 10,   8, 6, 7,   9, 8, 1
+            ];
+            
+            // Subdivide
+            for (let i = 0; i < subdivisions; i++) {
+                const newIndices = [];
+                const midCache = {};
+                
+                function getMidpoint(i1, i2) {
+                    const key = i1 < i2 ? `${i1}_${i2}` : `${i2}_${i1}`;
+                    if (midCache[key] !== undefined) return midCache[key];
+                    
+                    const v1 = [vertices[i1*3], vertices[i1*3+1], vertices[i1*3+2]];
+                    const v2 = [vertices[i2*3], vertices[i2*3+1], vertices[i2*3+2]];
+                    const mid = [
+                        (v1[0] + v2[0]) / 2,
+                        (v1[1] + v2[1]) / 2,
+                        (v1[2] + v2[2]) / 2
+                    ];
+                    
+                    // Normalize to sphere
+                    const len = Math.sqrt(mid[0]*mid[0] + mid[1]*mid[1] + mid[2]*mid[2]);
+                    mid[0] /= len; mid[1] /= len; mid[2] /= len;
+                    
+                    const idx = vertices.length / 3;
+                    vertices.push(mid[0], mid[1], mid[2]);
+                    midCache[key] = idx;
+                    return idx;
+                }
+                
+                for (let j = 0; j < indices.length; j += 3) {
+                    const v1 = indices[j], v2 = indices[j+1], v3 = indices[j+2];
+                    const a = getMidpoint(v1, v2);
+                    const b = getMidpoint(v2, v3);
+                    const c = getMidpoint(v3, v1);
+                    
+                    newIndices.push(v1, a, c,  v2, b, a,  v3, c, b,  a, b, c);
+                }
+                
+                indices = newIndices;
+            }
+            
+            // Normalize all vertices to unit sphere
+            for (let i = 0; i < vertices.length; i += 3) {
+                const len = Math.sqrt(vertices[i]*vertices[i] + vertices[i+1]*vertices[i+1] + vertices[i+2]*vertices[i+2]);
+                vertices[i] /= len;
+                vertices[i+1] /= len;
+                vertices[i+2] /= len;
+            }
+            
+            // Calculate normals (same as positions for sphere)
+            const normals = [...vertices];
+            
+            return { vertices, normals, indices };
+        }
+        
+        function initFerroSplash() {
+            if (!imgFilterGL) {
+                console.warn('Cannot init FERRO SPLASH: no WebGL context');
+                return false;
+            }
+            
+            const vertShader = imgFilterGL.createShader(imgFilterGL.VERTEX_SHADER);
+            imgFilterGL.shaderSource(vertShader, ferroSplashVertexShader);
+            imgFilterGL.compileShader(vertShader);
+            
+            if (!imgFilterGL.getShaderParameter(vertShader, imgFilterGL.COMPILE_STATUS)) {
+                console.error('FERRO SPLASH vertex shader error:', imgFilterGL.getShaderInfoLog(vertShader));
+                return false;
+            }
+            
+            const fragShader = imgFilterGL.createShader(imgFilterGL.FRAGMENT_SHADER);
+            imgFilterGL.shaderSource(fragShader, ferroSplashFragmentShader);
+            imgFilterGL.compileShader(fragShader);
+            
+            if (!imgFilterGL.getShaderParameter(fragShader, imgFilterGL.COMPILE_STATUS)) {
+                console.error('FERRO SPLASH fragment shader error:', imgFilterGL.getShaderInfoLog(fragShader));
+                return false;
+            }
+            
+            const program = imgFilterGL.createProgram();
+            imgFilterGL.attachShader(program, vertShader);
+            imgFilterGL.attachShader(program, fragShader);
+            imgFilterGL.linkProgram(program);
+            
+            if (!imgFilterGL.getProgramParameter(program, imgFilterGL.LINK_STATUS)) {
+                console.error('FERRO SPLASH program link error:', imgFilterGL.getProgramInfoLog(program));
+                return false;
+            }
+            
+            imageFilterState.shaderPrograms.morph = program;
+            
+            // Create icosphere geometry (2 subdivisions = ~320 triangles)
+            const sphere = createIcosphere(2);
+            
+            // Create buffers
+            const posBuffer = imgFilterGL.createBuffer();
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, posBuffer);
+            imgFilterGL.bufferData(imgFilterGL.ARRAY_BUFFER, new Float32Array(sphere.vertices), imgFilterGL.STATIC_DRAW);
+            
+            const normBuffer = imgFilterGL.createBuffer();
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, normBuffer);
+            imgFilterGL.bufferData(imgFilterGL.ARRAY_BUFFER, new Float32Array(sphere.normals), imgFilterGL.STATIC_DRAW);
+            
+            const idxBuffer = imgFilterGL.createBuffer();
+            imgFilterGL.bindBuffer(imgFilterGL.ELEMENT_ARRAY_BUFFER, idxBuffer);
+            imgFilterGL.bufferData(imgFilterGL.ELEMENT_ARRAY_BUFFER, new Uint16Array(sphere.indices), imgFilterGL.STATIC_DRAW);
+            
+            imageFilterState.geometryBuffers.morph = {
+                position: posBuffer,
+                normal: normBuffer,
+                indices: idxBuffer,
+                indexCount: sphere.indices.length
+            };
+            
+            console.log('FERRO SPLASH initialized - icosphere vertices:', sphere.vertices.length / 3);
+            return true;
+        }
+        
+        function initFractalVoid() {
+            if (!imgFilterGL) {
+                console.warn('Cannot init GLITCH DITHER: no WebGL context');
+                return false;
+            }
+            
+            const vertShader = imgFilterGL.createShader(imgFilterGL.VERTEX_SHADER);
+            imgFilterGL.shaderSource(vertShader, glitchDitherVertexShader);
+            imgFilterGL.compileShader(vertShader);
+            
+            if (!imgFilterGL.getShaderParameter(vertShader, imgFilterGL.COMPILE_STATUS)) {
+                console.error('GLITCH DITHER vertex shader error:', imgFilterGL.getShaderInfoLog(vertShader));
+                return false;
+            }
+            
+            const fragShader = imgFilterGL.createShader(imgFilterGL.FRAGMENT_SHADER);
+            imgFilterGL.shaderSource(fragShader, glitchDitherFragmentShader);
+            imgFilterGL.compileShader(fragShader);
+            
+            if (!imgFilterGL.getShaderParameter(fragShader, imgFilterGL.COMPILE_STATUS)) {
+                console.error('GLITCH DITHER fragment shader error:', imgFilterGL.getShaderInfoLog(fragShader));
+                return false;
+            }
+            
+            const program = imgFilterGL.createProgram();
+            imgFilterGL.attachShader(program, vertShader);
+            imgFilterGL.attachShader(program, fragShader);
+            imgFilterGL.linkProgram(program);
+            
+            if (!imgFilterGL.getProgramParameter(program, imgFilterGL.LINK_STATUS)) {
+                console.error('GLITCH DITHER program link error:', imgFilterGL.getProgramInfoLog(program));
+                return false;
+            }
+            
+            imageFilterState.shaderPrograms.void = program;
+            
+            // Create full-screen quad
+            const vertices = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
+            const texCoords = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
+            
+            const posBuffer = imgFilterGL.createBuffer();
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, posBuffer);
+            imgFilterGL.bufferData(imgFilterGL.ARRAY_BUFFER, vertices, imgFilterGL.STATIC_DRAW);
+            
+            const texBuffer = imgFilterGL.createBuffer();
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, texBuffer);
+            imgFilterGL.bufferData(imgFilterGL.ARRAY_BUFFER, texCoords, imgFilterGL.STATIC_DRAW);
+            
+            imageFilterState.geometryBuffers.void = {
+                position: posBuffer,
+                texCoord: texBuffer
+            };
+            
+            console.log('GLITCH DITHER initialized');
+            return true;
+        }
+        
+        function renderFractalVoid(freq, res, drive, time) {
+            if (!imgFilterGL || !imageFilterState.shaderPrograms.void || !imageFilterState.texture) {
+                return;
+            }
+            
+            const program = imageFilterState.shaderPrograms.void;
+            imgFilterGL.useProgram(program);
+            
+            const buffers = imageFilterState.geometryBuffers.void;
+            if (!buffers) return;
+            
+            imgFilterGL.clearColor(0, 0, 0, 0);
+            imgFilterGL.clear(imgFilterGL.COLOR_BUFFER_BIT);
+            
+            imgFilterGL.disable(imgFilterGL.DEPTH_TEST);
+            imgFilterGL.disable(imgFilterGL.BLEND);
+            
+            // Bind texture
+            imgFilterGL.activeTexture(imgFilterGL.TEXTURE0);
+            imgFilterGL.bindTexture(imgFilterGL.TEXTURE_2D, imageFilterState.texture);
+            imgFilterGL.uniform1i(imgFilterGL.getUniformLocation(program, 'imageTexture'), 0);
+            
+            // Set uniforms
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'frequency'), freq);
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'resonance'), res);
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'drive'), drive);
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'time'), time * 0.001);
+            imgFilterGL.uniform2f(
+                imgFilterGL.getUniformLocation(program, 'resolution'),
+                imageFilterCanvas.width,
+                imageFilterCanvas.height
+            );
+            
+            // Bind vertex attributes
+            const posLoc = imgFilterGL.getAttribLocation(program, 'position');
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, buffers.position);
+            imgFilterGL.enableVertexAttribArray(posLoc);
+            imgFilterGL.vertexAttribPointer(posLoc, 2, imgFilterGL.FLOAT, false, 0, 0);
+            
+            const texLoc = imgFilterGL.getAttribLocation(program, 'texCoord');
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, buffers.texCoord);
+            imgFilterGL.enableVertexAttribArray(texLoc);
+            imgFilterGL.vertexAttribPointer(texLoc, 2, imgFilterGL.FLOAT, false, 0, 0);
+            
+            // Draw quad
+            imgFilterGL.drawArrays(imgFilterGL.TRIANGLE_STRIP, 0, 4);
+        }
+        
+        function renderFerroSplash(freq, res, drive, time) {
+            if (!imgFilterGL || !imageFilterState.shaderPrograms.blob || !imageFilterState.texture) {
+                return;
+            }
+            
+            const program = imageFilterState.shaderPrograms.blob;
+            imgFilterGL.useProgram(program);
+            
+            const buffers = imageFilterState.geometryBuffers.blob;
+            if (!buffers) return;
+            
+            imgFilterGL.clearColor(0, 0, 0, 0);
+            imgFilterGL.clear(imgFilterGL.COLOR_BUFFER_BIT | imgFilterGL.DEPTH_BUFFER_BIT);
+            
+            imgFilterGL.enable(imgFilterGL.DEPTH_TEST);
+            imgFilterGL.depthFunc(imgFilterGL.LEQUAL);
+            
+            imgFilterGL.enable(imgFilterGL.CULL_FACE);
+            imgFilterGL.cullFace(imgFilterGL.BACK);
+            
+            // Bind texture
+            imgFilterGL.activeTexture(imgFilterGL.TEXTURE0);
+            imgFilterGL.bindTexture(imgFilterGL.TEXTURE_2D, imageFilterState.texture);
+            imgFilterGL.uniform1i(imgFilterGL.getUniformLocation(program, 'imageTexture'), 0);
+            
+            // Set uniforms
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'frequency'), freq);
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'resonance'), res);
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'drive'), drive);
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'time'), time * 0.001);
+            
+            // Create matrices
+            const aspect = imageFilterCanvas.width / imageFilterCanvas.height;
+            const fov = 45 * Math.PI / 180;
+            const near = 0.1;
+            const far = 100;
+            
+            // Projection matrix
+            const f = 1.0 / Math.tan(fov / 2);
+            const projectionMatrix = new Float32Array([
+                f / aspect, 0, 0, 0,
+                0, f, 0, 0,
+                0, 0, (far + near) / (near - far), -1,
+                0, 0, (2 * far * near) / (near - far), 0
+            ]);
+            
+            // Model-view matrix (camera at z=5, looking at origin)
+            const modelViewMatrix = new Float32Array([
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, -5, 1
+            ]);
+            
+            imgFilterGL.uniformMatrix4fv(
+                imgFilterGL.getUniformLocation(program, 'projectionMatrix'),
+                false,
+                projectionMatrix
+            );
+            
+            imgFilterGL.uniformMatrix4fv(
+                imgFilterGL.getUniformLocation(program, 'modelViewMatrix'),
+                false,
+                modelViewMatrix
+            );
+            
+            // Bind vertex attributes
+            const posLoc = imgFilterGL.getAttribLocation(program, 'position');
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, buffers.position);
+            imgFilterGL.enableVertexAttribArray(posLoc);
+            imgFilterGL.vertexAttribPointer(posLoc, 3, imgFilterGL.FLOAT, false, 0, 0);
+            
+            const normLoc = imgFilterGL.getAttribLocation(program, 'normal');
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, buffers.normal);
+            imgFilterGL.enableVertexAttribArray(normLoc);
+            imgFilterGL.vertexAttribPointer(normLoc, 3, imgFilterGL.FLOAT, false, 0, 0);
+            
+            // Draw
+            imgFilterGL.bindBuffer(imgFilterGL.ELEMENT_ARRAY_BUFFER, buffers.indices);
+            imgFilterGL.drawElements(imgFilterGL.TRIANGLES, buffers.indexCount, imgFilterGL.UNSIGNED_SHORT, 0);
+        }
+        
+        function createLumaSerpentMesh(resolution) {
+            if (!imgFilterGL) return null;
+            
+            const gridSize = Math.floor(10 + resolution * 90);
+            
+            const vertices = [];
+            const texCoords = [];
+            
+            for (let y = 0; y <= gridSize; y++) {
+                for (let x = 0; x <= gridSize; x++) {
+                    const posX = x / gridSize;
+                    const posY = y / gridSize;
+                    
+                    vertices.push(posX, posY);
+                    texCoords.push(posX, 1.0 - posY); // Flip Y for correct texture orientation
+                }
+            }
+            
+            const positionBuffer = imgFilterGL.createBuffer();
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, positionBuffer);
+            imgFilterGL.bufferData(imgFilterGL.ARRAY_BUFFER, new Float32Array(vertices), imgFilterGL.STATIC_DRAW);
+            
+            const texCoordBuffer = imgFilterGL.createBuffer();
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, texCoordBuffer);
+            imgFilterGL.bufferData(imgFilterGL.ARRAY_BUFFER, new Float32Array(texCoords), imgFilterGL.STATIC_DRAW);
+            
+            return {
+                positionBuffer,
+                texCoordBuffer,
+                vertexCount: vertices.length / 2
+            };
+        }
+        
+        function loadImageTexture() {
+            if (!imgFilterGL || !mainImage) return;
+            
+            const texture = imgFilterGL.createTexture();
+            imgFilterGL.bindTexture(imgFilterGL.TEXTURE_2D, texture);
+            
+            imgFilterGL.texParameteri(imgFilterGL.TEXTURE_2D, imgFilterGL.TEXTURE_WRAP_S, imgFilterGL.CLAMP_TO_EDGE);
+            imgFilterGL.texParameteri(imgFilterGL.TEXTURE_2D, imgFilterGL.TEXTURE_WRAP_T, imgFilterGL.CLAMP_TO_EDGE);
+            imgFilterGL.texParameteri(imgFilterGL.TEXTURE_2D, imgFilterGL.TEXTURE_MIN_FILTER, imgFilterGL.LINEAR);
+            imgFilterGL.texParameteri(imgFilterGL.TEXTURE_2D, imgFilterGL.TEXTURE_MAG_FILTER, imgFilterGL.LINEAR);
+            
+            try {
+                imgFilterGL.texImage2D(
+                    imgFilterGL.TEXTURE_2D,
+                    0,
+                    imgFilterGL.RGBA,
+                    imgFilterGL.RGBA,
+                    imgFilterGL.UNSIGNED_BYTE,
+                    mainImage
+                );
+                console.log('Image texture loaded (direct)');
+            } catch(e) {
+                console.log('CORS blocked, using canvas fallback');
+                const canvas = document.createElement('canvas');
+                canvas.width = mainImage.naturalWidth || mainImage.width;
+                canvas.height = mainImage.naturalHeight || mainImage.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(mainImage, 0, 0);
+                
+                imgFilterGL.texImage2D(
+                    imgFilterGL.TEXTURE_2D,
+                    0,
+                    imgFilterGL.RGBA,
+                    imgFilterGL.RGBA,
+                    imgFilterGL.UNSIGNED_BYTE,
+                    canvas
+                );
+                console.log('Image texture loaded (canvas fallback)');
+            }
+            
+            imageFilterState.texture = texture;
+        }
+        
+        function renderLumaSerpent(freq, res, drive, time) {
+            if (!imgFilterGL || !imageFilterState.shaderPrograms.skin || !imageFilterState.texture) {
+                return;
+            }
+            
+            const program = imageFilterState.shaderPrograms.skin;
+            imgFilterGL.useProgram(program);
+            
+            const mesh = createLumaSerpentMesh(freq);
+            if (!mesh) return;
+            
+            imgFilterGL.clearColor(0, 0, 0, 0);
+            imgFilterGL.clear(imgFilterGL.COLOR_BUFFER_BIT | imgFilterGL.DEPTH_BUFFER_BIT);
+            
+            imgFilterGL.enable(imgFilterGL.DEPTH_TEST);
+            imgFilterGL.depthFunc(imgFilterGL.LEQUAL);
+            
+            imgFilterGL.enable(imgFilterGL.BLEND);
+            imgFilterGL.blendFunc(imgFilterGL.SRC_ALPHA, imgFilterGL.ONE_MINUS_SRC_ALPHA);
+            
+            imgFilterGL.activeTexture(imgFilterGL.TEXTURE0);
+            imgFilterGL.bindTexture(imgFilterGL.TEXTURE_2D, imageFilterState.texture);
+            imgFilterGL.uniform1i(imgFilterGL.getUniformLocation(program, 'imageTexture'), 0);
+            
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'frequency'), freq);
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'resonance'), res);
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'drive'), drive);
+            imgFilterGL.uniform1f(imgFilterGL.getUniformLocation(program, 'time'), time * 0.001);
+            imgFilterGL.uniform2f(
+                imgFilterGL.getUniformLocation(program, 'resolution'),
+                imageFilterCanvas.width,
+                imageFilterCanvas.height
+            );
+            
+            const positionLoc = imgFilterGL.getAttribLocation(program, 'position');
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, mesh.positionBuffer);
+            imgFilterGL.enableVertexAttribArray(positionLoc);
+            imgFilterGL.vertexAttribPointer(positionLoc, 2, imgFilterGL.FLOAT, false, 0, 0);
+            
+            const texCoordLoc = imgFilterGL.getAttribLocation(program, 'texCoord');
+            imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, mesh.texCoordBuffer);
+            imgFilterGL.enableVertexAttribArray(texCoordLoc);
+            imgFilterGL.vertexAttribPointer(texCoordLoc, 2, imgFilterGL.FLOAT, false, 0, 0);
+            
+            imgFilterGL.drawArrays(imgFilterGL.POINTS, 0, mesh.vertexCount);
+            
+            imgFilterGL.deleteBuffer(mesh.positionBuffer);
+            imgFilterGL.deleteBuffer(mesh.texCoordBuffer);
+        }
+        
+        const PATTERN_MODES = {
+            'OFF': -1, 'RANDOM': 0, 'SPREAD': 1, 'DETUNE': 2, 'CLASSIC': 3,
+            'SHIMMER': 4, 'DRIFT': 5, 'ANALOG': 6
+        };
+        
+        function drawNoiseWebGL(time) {
+            if (!gl || !shaderProgram) return;
+            
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clearColor(0, 0, 0, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            const modeR = PATTERN_MODES[document.getElementById('noise-mode-red')?.value || 'RANDOM'];
+            const modeG = PATTERN_MODES[document.getElementById('noise-mode-green')?.value || 'RANDOM'];
+            const modeB = PATTERN_MODES[document.getElementById('noise-mode-blue')?.value || 'RANDOM'];
+            
+            const freqR = parseFloat(document.getElementById('noise-speed-red')?.value) || 1.0;
+            const freqG = parseFloat(document.getElementById('noise-speed-green')?.value) || 1.0;
+            const freqB = parseFloat(document.getElementById('noise-speed-blue')?.value) || 1.0;
+            const complexity = parseFloat(document.getElementById('noise-complexity')?.value) || 50;
+            
+            const deltaTime = lastNoiseTime === 0 ? 0 : (time - lastNoiseTime) / 1000;
+            lastNoiseTime = time;
+            
+            if (modeR === 0) {
+                timeAccumR += deltaTime * freqR;
+            } else if (modeR === 1) {
+                timeAccumR += deltaTime * freqR * 0.02;
+            } else if (modeR === 2) {
+                timeAccumR += deltaTime * freqR * 0.1;
+            } else if (modeR === 3) {
+                timeAccumR += deltaTime * freqR * 0.15;
+            } else if (modeR === 4) {
+                timeAccumR += deltaTime * freqR * 0.02;
+            } else if (modeR === 5) {
+                timeAccumR += deltaTime * freqR * 0.03;
+            } else if (modeR === 6) {
+                timeAccumR += deltaTime * freqR * 0.02;
+            }
+            
+            if (modeG === 0) {
+                timeAccumG += deltaTime * freqG;
+            } else if (modeG === 1) {
+                timeAccumG += deltaTime * freqG * 0.02;
+            } else if (modeG === 2) {
+                timeAccumG += deltaTime * freqG * 0.1;
+            } else if (modeG === 3) {
+                timeAccumG += deltaTime * freqG * 0.15;
+            } else if (modeG === 4) {
+                timeAccumG += deltaTime * freqG * 0.02;
+            } else if (modeG === 5) {
+                timeAccumG += deltaTime * freqG * 0.03;
+            } else if (modeG === 6) {
+                timeAccumG += deltaTime * freqG * 0.02;
+            }
+            
+            if (modeB === 0) {
+                timeAccumB += deltaTime * freqB;
+            } else if (modeB === 1) {
+                timeAccumB += deltaTime * freqB * 0.02;
+            } else if (modeB === 2) {
+                timeAccumB += deltaTime * freqB * 0.1;
+            } else if (modeB === 3) {
+                timeAccumB += deltaTime * freqB * 0.15;
+            } else if (modeB === 4) {
+                timeAccumB += deltaTime * freqB * 0.02;
+            } else if (modeB === 5) {
+                timeAccumB += deltaTime * freqB * 0.03;
+            } else if (modeB === 6) {
+                timeAccumB += deltaTime * freqB * 0.02;
+            }
+            
+            gl.uniform2f(uniformLocations.resolution, canvas.width, canvas.height);
+            gl.uniform1f(uniformLocations.time, time * 0.001);
+            gl.uniform1i(uniformLocations.modeR, modeR);
+            gl.uniform1i(uniformLocations.modeG, modeG);
+            gl.uniform1i(uniformLocations.modeB, modeB);
+            gl.uniform1f(uniformLocations.freqR, freqR);
+            gl.uniform1f(uniformLocations.freqG, freqG);
+            gl.uniform1f(uniformLocations.freqB, freqB);
+            gl.uniform1f(uniformLocations.complexity, complexity);
+            
+            gl.uniform1f(uniformLocations.timeAccumR, timeAccumR);
+            gl.uniform1f(uniformLocations.timeAccumG, timeAccumG);
+            gl.uniform1f(uniformLocations.timeAccumB, timeAccumB);
+            
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            
+            if (modeR === 0 || modeG === 0 || modeB === 0) {
+                randomCanvas.style.display = 'block';
+                
+                const ctx = randomCanvas.getContext('2d');
+                
+                ctx.clearRect(0, 0, randomCanvas.width, randomCanvas.height);
+                
+                const imageData = ctx.createImageData(randomCanvas.width, randomCanvas.height);
+                const data = imageData.data;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i] = (modeR === 0) ? Math.random() * 255 : 0;
+                    data[i + 1] = (modeG === 0) ? Math.random() * 255 : 0;
+                    data[i + 2] = (modeB === 0) ? Math.random() * 255 : 0;
+                    data[i + 3] = 255;
+                }
+                
+                ctx.putImageData(imageData, 0, 0);
+            } else {
+                randomCanvas.style.display = 'none';
+            }
+            
+            noiseFrameId = requestAnimationFrame(drawNoiseWebGL);
+        }
+
+        function resizeCanvas() {
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                if (gl) {
+                    gl.viewport(0, 0, canvas.width, canvas.height);
+                }
+            }
+            if (randomCanvas) {
+                randomCanvas.width = window.innerWidth;
+                randomCanvas.height = window.innerHeight;
+            }
+            if (imageFilterCanvas && mainImage) {
+                imageFilterCanvas.width = mainImage.offsetWidth;
+                imageFilterCanvas.height = mainImage.offsetHeight;
+                if (imgFilterGL) {
+                    imgFilterGL.viewport(0, 0, imageFilterCanvas.width, imageFilterCanvas.height);
+                }
+            }
+        }
+
+        function drawImageFilter(time) {
+            if (!isExperimentMode || imageFilterState.mode === 'OFF') {
+                if (imageFilterCanvas) {
+                    imageFilterCanvas.style.display = 'none';
+                }
+                if (mainImage) {
+                    mainImage.style.visibility = 'visible';
+                }
+                return;
+            }
+            
+            if (!imgFilterGL || !imageFilterCanvas) {
+                return;
+            }
+            
+            imageFilterCanvas.style.display = 'block';
+            if (mainImage) {
+                mainImage.style.visibility = 'hidden';
+            }
+            
+            const freq = imageFilterState.frequency / 100;
+            const res = imageFilterState.resonance / 100;
+            const drive = imageFilterState.drive / 100;
+            
+            switch(imageFilterState.mode) {
+                case 'SKIN':
+                    renderLumaSerpent(freq, res, drive, time);
+                    break;
+                case 'BLOB':
+                    renderFerroSplash(freq, res, drive, time);
+                    break;
+                case 'VOID':
+                    renderFractalVoid(freq, res, drive, time);
+                    break;
+            }
+            
+            imageFilterState.animationFrameId = requestAnimationFrame(drawImageFilter);
+        }
+
+        function startExperimentMode() {
+            if (isExperimentMode) return;
+            isExperimentMode = true;
+            
+            modulatorPanel.style.display = 'block';
+            toggleButton.textContent = 'DEACTIVATE EXPERIMENT MODE';
+            toggleButton.style.backgroundColor = '#00FF00';
+            toggleButton.style.color = '#000';
+            
+            const noiseCanvas = document.getElementById('noiseCanvas');
+            if (noiseCanvas) {
+                noiseCanvas.style.setProperty('opacity', '1.0', 'important');
+            }
+            
+            const bodyText = document.querySelector('.body-copy');
+            const headerElem = document.getElementById('main-header');
+            const bodyElement = document.body;
+            
+            if (bodyText) bodyText.style.color = 'hsl(0, 100%, 50%)';
+            if (bodyElement) {
+                bodyElement.style.color = 'hsl(0, 100%, 50%)';
+                bodyElement.style.borderTopColor = 'hsl(0, 100%, 50%)';
+            }
+            if (headerElem) headerElem.style.color = 'hsl(0, 100%, 50%)';
+            
+            lastTime = performance.now();
+            updateModulation(lastTime);
+
+            headerChars.forEach(char => {
+                char.style.fontFamily = 'inherit';
+            });
+            
+            if (imageFilterState.mode !== 'OFF') {
+                // Initialize shaders as needed
+                if (imageFilterState.mode === 'SKIN' && !imageFilterState.shaderPrograms.skin) {
+                    initLumaSerpent();
+                }
+                if (imageFilterState.mode === 'BLOB' && !imageFilterState.shaderPrograms.blob) {
+                    initFerroSplash();
+                }
+                if (imageFilterState.mode === 'VOID' && !imageFilterState.shaderPrograms.void) {
+                    initFractalVoid();
+                }
+                
+                if (!imageFilterState.texture && mainImage && mainImage.complete) {
+                    loadImageTexture();
+                }
+                
+                drawImageFilter(performance.now());
+            }
+        }
+
+        function stopExperimentMode() {
+            if (!isExperimentMode) return;
+            isExperimentMode = false;
+            
+            modulatorPanel.style.display = 'none';
+            toggleButton.textContent = 'ACTIVATE EXPERIMENT MODE';
+            toggleButton.style.backgroundColor = 'white';
+            toggleButton.style.color = 'black';
+            
+            const noiseCanvas = document.getElementById('noiseCanvas');
+            if (noiseCanvas) {
+                noiseCanvas.style.setProperty('opacity', '0.25', 'important');
+            }
+
+            modMatrix.forEach(mod => {
+                mod.source = 'Off';
+                mod.currentValue = mod.baseValue;
+                
+                let unit = '';
+                if (mod.cssVar === '--body-spacing') unit = 'px';
+                else if (mod.cssVar === '--image-hue-rotate') unit = 'deg';
+                
+                root.setProperty(mod.cssVar, `${mod.baseValue}${unit}`);
+            });
+            
+            const bodyText = document.querySelector('.body-copy');
+            const navLinks = document.querySelectorAll('.nav-links a');
+            const headerElem = document.getElementById('main-header');
+            const bodyElement = document.body;
+            
+            root.setProperty('--header-color-hue', '0');
+            root.setProperty('--body-color-hue', '0');
+            root.setProperty('--header-font', '"UnifrakturMaguntia", cursive');
+            
+            if (bodyText) bodyText.style.color = 'black';
+            if (bodyElement) {
+                bodyElement.style.color = 'black';
+                bodyElement.style.borderTopColor = 'black';
+            }
+            if (headerElem) headerElem.style.color = 'black';
+            
+            navLinks.forEach(link => {
+                link.style.color = '#FFD700';
+                link.style.borderBottomColor = '#FFD700';
+            });
+            
+            headerChars.forEach(char => char.style.fontFamily = 'inherit');
+
+            if (bodyText) {
+                bodyText.style.fontWeight = 'normal';
+                bodyText.style.fontStyle = 'normal';
+                bodyText.style.textDecoration = 'none';
+            }
+
+            document.getElementById('glitch-speed').value = 1;
+            document.getElementById('modeUp').checked = true;
+            
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            
+            if (imageFilterState.animationFrameId) {
+                cancelAnimationFrame(imageFilterState.animationFrameId);
+                imageFilterState.animationFrameId = null;
+            }
+            if (imageFilterCanvas) {
+                imageFilterCanvas.style.display = 'none';
+            }
+            if (mainImage) {
+                mainImage.style.visibility = 'visible';
+            }
+            
+            timeAccumR = 0;
+            timeAccumG = 0;
+            timeAccumB = 0;
+            lastNoiseTime = 0;
+            
+            glitchIndex = 0;
+            renderModMatrix();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        toggleButton.addEventListener('click', () => {
+            if (isExperimentMode) {
+                stopExperimentMode();
+            } else {
+                startExperimentMode();
+            }
+        });
+
+        renderLfoDrivers();
+        renderModMatrix();
+        setupNavLinkHovers();
+        
+        const voicesSlider = document.getElementById('noise-complexity');
+        const voicesValue = document.getElementById('voices-value');
+        if (voicesSlider && voicesValue) {
+            voicesSlider.oninput = (e) => {
+                voicesValue.textContent = e.target.value;
+            };
+        }
+        
+        const speedRedSlider = document.getElementById('noise-speed-red');
+        const amountRedValue = document.getElementById('amount-red-value');
+        if (speedRedSlider && amountRedValue) {
+            speedRedSlider.oninput = (e) => {
+                const percent = Math.round(parseFloat(e.target.value) * 10);
+                amountRedValue.textContent = `${percent}%`;
+            };
+        }
+        
+        const speedGreenSlider = document.getElementById('noise-speed-green');
+        const amountGreenValue = document.getElementById('amount-green-value');
+        if (speedGreenSlider && amountGreenValue) {
+            speedGreenSlider.oninput = (e) => {
+                const percent = Math.round(parseFloat(e.target.value) * 10);
+                amountGreenValue.textContent = `${percent}%`;
+            };
+        }
+        
+        const speedBlueSlider = document.getElementById('noise-speed-blue');
+        const amountBlueValue = document.getElementById('amount-blue-value');
+        if (speedBlueSlider && amountBlueValue) {
+            speedBlueSlider.oninput = (e) => {
+                const percent = Math.round(parseFloat(e.target.value) * 10);
+                amountBlueValue.textContent = `${percent}%`;
+            };
+        }
+        
+        const imgFreqSlider = document.getElementById('img-freq');
+        const imgFreqValue = document.getElementById('img-freq-value');
+        if (imgFreqSlider && imgFreqValue) {
+            imgFreqSlider.oninput = (e) => {
+                imageFilterState.frequency = parseFloat(e.target.value);
+                imgFreqValue.textContent = e.target.value;
+            };
+        }
+        
+        const imgResSlider = document.getElementById('img-res');
+        const imgResValue = document.getElementById('img-res-value');
+        if (imgResSlider && imgResValue) {
+            imgResSlider.oninput = (e) => {
+                imageFilterState.resonance = parseFloat(e.target.value);
+                imgResValue.textContent = e.target.value;
+            };
+        }
+        
+        const imgDriveSlider = document.getElementById('img-drive');
+        const imgDriveValue = document.getElementById('img-drive-value');
+        if (imgDriveSlider && imgDriveValue) {
+            imgDriveSlider.oninput = (e) => {
+                imageFilterState.drive = parseFloat(e.target.value);
+                imgDriveValue.textContent = e.target.value;
+            };
+        }
+        
+        const imageModeRadios = document.querySelectorAll('input[name="imageMode"]');
+        imageModeRadios.forEach(radio => {
+            radio.onchange = (e) => {
+                imageFilterState.mode = e.target.value;
+                console.log('Image Filter Mode:', imageFilterState.mode);
+                
+                if (imageFilterState.mode === 'OFF') {
+                    if (imageFilterCanvas) imageFilterCanvas.style.display = 'none';
+                    if (mainImage) mainImage.style.visibility = 'visible';
+                    if (imageFilterState.animationFrameId) {
+                        cancelAnimationFrame(imageFilterState.animationFrameId);
+                        imageFilterState.animationFrameId = null;
+                    }
+                } else if (isExperimentMode) {
+                    if (mainImage) mainImage.style.visibility = 'hidden';
+                    
+                    // Initialize shader for selected mode
+                    if (imageFilterState.mode === 'SKIN' && !imageFilterState.shaderPrograms.skin) {
+                        initLumaSerpent();
+                    }
+                    if (imageFilterState.mode === 'BLOB' && !imageFilterState.shaderPrograms.blob) {
+                        initFerroSplash();
+                    }
+                    if (imageFilterState.mode === 'VOID' && !imageFilterState.shaderPrograms.void) {
+                        initFractalVoid();
+                    }
+                    
+                    if (!imageFilterState.texture && mainImage && mainImage.complete) {
+                        loadImageTexture();
+                    }
+                    
+                    if (!imageFilterState.animationFrameId) {
+                        drawImageFilter(performance.now());
+                    }
+                }
+            };
+        });
+        
+        modMatrix.forEach(mod => {
+            mod.baseValue = mod.min;
+        });
+        
+        stopExperimentMode();
+        
+        if (mainImage) {
+            mainImage.addEventListener('load', () => {
+                if (imageFilterCanvas) {
+                    imageFilterCanvas.width = mainImage.offsetWidth;
+                    imageFilterCanvas.height = mainImage.offsetHeight;
+                    if (imgFilterGL) {
+                        imgFilterGL.viewport(0, 0, imageFilterCanvas.width, imageFilterCanvas.height);
+                    }
+                    console.log('Image Filter Canvas sized:', imageFilterCanvas.width, 'x', imageFilterCanvas.height);
+                }
+                
+                if (!imageFilterState.texture && imgFilterGL) {
+                    loadImageTexture();
+                }
+            });
+            
+            if (mainImage.complete) {
+                imageFilterCanvas.width = mainImage.offsetWidth;
+                imageFilterCanvas.height = mainImage.offsetHeight;
+                if (imgFilterGL) {
+                    imgFilterGL.viewport(0, 0, imageFilterCanvas.width, imageFilterCanvas.height);
+                }
+                
+                if (!imageFilterState.texture && imgFilterGL) {
+                    loadImageTexture();
+                }
+            }
+        }
+        
+        const noiseCanvas = document.getElementById('noiseCanvas');
+        if (noiseCanvas) {
+            noiseCanvas.style.setProperty('opacity', '0.25', 'important');
+        }
+        
+        if (canvas) {
+            resizeCanvas();
+            if (initWebGL()) {
+                console.log('WebGL ready!');
+                drawNoiseWebGL(0);
+            } else {
+                console.error('WebGL init failed');
+            }
+        }
+        
+        console.log('RAFLOST LOADED - Proto 85 - GLITCH DITHER REFACTORED!');
+    </script>
+</body>
+</html>
