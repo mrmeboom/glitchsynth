@@ -152,6 +152,7 @@
             top: 0;
             right: 0;
             z-index: 100;
+            --handle-visible-width: 18px;
             background: #000;
             color: #0f0;
             border: 3px solid #0f0;
@@ -170,7 +171,7 @@
         }
 
         #modulator-panel.collapsed {
-            --panel-offset: calc(100% - 25px);
+            --panel-offset: calc(100% - var(--handle-visible-width, 18px));
         }
 
         .mod-panel-content {
@@ -182,11 +183,11 @@
 
         .mod-drawer-handle {
             position: absolute;
-            left: -25px;
+            left: calc(-1 * var(--handle-visible-width, 18px));
             top: 50%;
             transform: translateY(-50%);
-            width: 25px;
-            height: 75px;
+            width: 12px;
+            height: 38px;
             background: #000;
             border: 3px solid #0f0;
             border-radius: 999px;
@@ -208,9 +209,9 @@
         .mod-handle-icon {
             width: 0;
             height: 0;
-            border-top: 8px solid transparent;
-            border-bottom: 8px solid transparent;
-            border-left: 12px solid #0f0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 9px solid #0f0;
         }
 
         .mod-section {
@@ -741,7 +742,7 @@
         let isDraggingPanel = false;
         let panelDragStartX = 0;
         let panelStartOffset = 0;
-        const PANEL_HANDLE_WIDTH = 25;
+        const PANEL_HANDLE_WIDTH = 18;
         
         let timeAccumR = 0;
         let timeAccumG = 0;
