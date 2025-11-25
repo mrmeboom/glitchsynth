@@ -170,7 +170,7 @@
         }
 
         #modulator-panel.collapsed {
-            --panel-offset: calc(100% - 22px);
+            --panel-offset: calc(100% - 25px);
         }
 
         .mod-panel-content {
@@ -182,14 +182,14 @@
 
         .mod-drawer-handle {
             position: absolute;
-            left: -22px;
+            left: -25px;
             top: 50%;
             transform: translateY(-50%);
-            width: 22px;
-            height: 80px;
+            width: 25px;
+            height: 75px;
             background: #000;
             border: 3px solid #0f0;
-            border-right: none;
+            border-radius: 999px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -197,6 +197,7 @@
             box-shadow: -4px 0 10px rgba(0, 255, 0, 0.4);
             transition: background 0.2s;
             user-select: none;
+            box-sizing: border-box;
         }
 
         .mod-drawer-handle:active {
@@ -204,17 +205,12 @@
             background: #003300;
         }
 
-        .mod-handle-grip {
-            width: 6px;
-            height: 40px;
-            background: repeating-linear-gradient(
-                0deg,
-                #0f0,
-                #0f0 6px,
-                transparent 6px,
-                transparent 10px
-            );
-            border-radius: 3px;
+        .mod-handle-icon {
+            width: 0;
+            height: 0;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-left: 12px solid #0f0;
         }
 
         .mod-section {
@@ -539,7 +535,7 @@
 
         <div id="modulator-panel" class="expanded">
         <div class="mod-drawer-handle" id="modulator-handle" title="Drag or click to slide">
-            <div class="mod-handle-grip"></div>
+            <div class="mod-handle-icon"></div>
         </div>
         <div class="mod-panel-content">
 
