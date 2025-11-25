@@ -46,8 +46,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1; 
+            z-index: -1;
             pointer-events: none;
+            opacity: 0.25;
         }
 
         #randomNoiseCanvas {
@@ -60,6 +61,7 @@
             pointer-events: none;
             display: none;
             mix-blend-mode: screen;
+            opacity: 0.25;
         }
 
         #imageFilterCanvas {
@@ -2517,7 +2519,7 @@
             
             // Create full-screen quad
             const vertices = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
-            const texCoords = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
+            const texCoords = new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]);
             
             const posBuffer = imgFilterGL.createBuffer();
             imgFilterGL.bindBuffer(imgFilterGL.ARRAY_BUFFER, posBuffer);
@@ -2978,6 +2980,10 @@
             if (noiseCanvas) {
                 noiseCanvas.style.setProperty('opacity', '1.0', 'important');
             }
+            const randomNoiseCanvas = document.getElementById('randomNoiseCanvas');
+            if (randomNoiseCanvas) {
+                randomNoiseCanvas.style.setProperty('opacity', '1.0', 'important');
+            }
             
             const bodyText = document.querySelector('.body-copy');
             const headerElem = document.getElementById('main-header');
@@ -3029,6 +3035,10 @@
             const noiseCanvas = document.getElementById('noiseCanvas');
             if (noiseCanvas) {
                 noiseCanvas.style.setProperty('opacity', '0.25', 'important');
+            }
+            const randomNoiseCanvas = document.getElementById('randomNoiseCanvas');
+            if (randomNoiseCanvas) {
+                randomNoiseCanvas.style.setProperty('opacity', '0.25', 'important');
             }
 
             modMatrix.forEach(mod => {
@@ -3250,6 +3260,10 @@
         const noiseCanvas = document.getElementById('noiseCanvas');
         if (noiseCanvas) {
             noiseCanvas.style.setProperty('opacity', '0.25', 'important');
+        }
+        const randomNoiseCanvas = document.getElementById('randomNoiseCanvas');
+        if (randomNoiseCanvas) {
+            randomNoiseCanvas.style.setProperty('opacity', '0.25', 'important');
         }
         
         if (canvas) {
