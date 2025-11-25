@@ -152,8 +152,6 @@
             top: 0;
             right: 0;
             z-index: 100;
-            --handle-visible-width: 18px;
-            --handle-overhang: calc(var(--handle-visible-width, 18px) / 2);
             background: #000;
             color: #0f0;
             border: 3px solid #0f0;
@@ -184,7 +182,7 @@
 
         .mod-drawer-handle {
             position: absolute;
-            left: calc(-1 * var(--handle-overhang, 9px));
+            left: -7.7px;
             top: 50%;
             transform: translateY(-50%);
             width: 12px;
@@ -210,9 +208,9 @@
         .mod-handle-icon {
             width: 0;
             height: 0;
-            border-top: 4px solid transparent;
-            border-bottom: 4px solid transparent;
-            border-left: 6px solid #0f0;
+            border-top: 2px solid transparent;
+            border-bottom: 2px solid transparent;
+            border-left: 3px solid #0f0;
         }
 
         .mod-section {
