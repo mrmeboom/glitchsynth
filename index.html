@@ -149,19 +149,72 @@
         
         #modulator-panel {
             position: fixed;
-            top: 2rem;
-            right: 2rem;
+            top: 0;
+            right: 0;
             z-index: 100;
             background: #000;
             color: #0f0;
             border: 3px solid #0f0;
-            padding: 12px;
             font-family: var(--body-font);
             width: 320px;
             display: none;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
-            max-height: calc(100vh - 4rem);
+            height: 100vh;
+            overflow: hidden;
+            transform: translateX(var(--panel-offset, 0));
+            transition: transform 0.3s ease;
+        }
+
+        #modulator-panel.expanded {
+            --panel-offset: 0px;
+        }
+
+        #modulator-panel.collapsed {
+            --panel-offset: calc(100% - 22px);
+        }
+
+        .mod-panel-content {
+            height: 100%;
             overflow-y: auto;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        .mod-drawer-handle {
+            position: absolute;
+            left: -22px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 80px;
+            background: #000;
+            border: 3px solid #0f0;
+            border-right: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: -4px 0 10px rgba(0, 255, 0, 0.4);
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .mod-drawer-handle:active {
+            cursor: grabbing;
+            background: #003300;
+        }
+
+        .mod-handle-grip {
+            width: 6px;
+            height: 40px;
+            background: repeating-linear-gradient(
+                0deg,
+                #0f0,
+                #0f0 6px,
+                transparent 6px,
+                transparent 10px
+            );
+            border-radius: 3px;
         }
 
         .mod-section {
@@ -484,8 +537,12 @@
     <canvas id="noiseCanvas"></canvas>
     <canvas id="randomNoiseCanvas"></canvas>
 
-        <div id="modulator-panel">
-        
+        <div id="modulator-panel" class="expanded">
+        <div class="mod-drawer-handle" id="modulator-handle" title="Drag or click to slide">
+            <div class="mod-handle-grip"></div>
+        </div>
+        <div class="mod-panel-content">
+
         <div class="mod-section">
             <div class="mod-title">VCSSO</div>
             <div id="lfo-drivers"></div>
@@ -627,6 +684,8 @@
             </div>
         </div>
 
+        </div>
+
     </div>
 
     <div class="header-container">
@@ -675,12 +734,18 @@
         const canvas = document.getElementById('noiseCanvas');
         const randomCanvas = document.getElementById('randomNoiseCanvas');
         const gl = canvas ? (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) : null;
+        const modulatorHandle = document.getElementById('modulator-handle');
         
         let animationFrameId = null; 
         let noiseFrameId = null;
         let isExperimentMode = false;
         let shaderProgram = null;
         let uniformLocations = {};
+        let isPanelCollapsed = false;
+        let isDraggingPanel = false;
+        let panelDragStartX = 0;
+        let panelStartOffset = 0;
+        const PANEL_HANDLE_WIDTH = 22;
         
         let timeAccumR = 0;
         let timeAccumG = 0;
@@ -688,8 +753,68 @@
         let lastNoiseTime = 0;
         
         console.log('Init complete', {canvas: !!canvas, gl: !!gl});
-        
+
         if (!gl) console.error('No WebGL!');
+
+        function getPanelHiddenOffset() {
+            const rect = modulatorPanel ? modulatorPanel.getBoundingClientRect() : null;
+            const width = rect ? rect.width : 0;
+            return Math.max(width - PANEL_HANDLE_WIDTH, 0);
+        }
+
+        function setPanelOffset(offset) {
+            if (!modulatorPanel) return;
+            const maxOffset = getPanelHiddenOffset();
+            const clamped = Math.min(Math.max(offset, 0), maxOffset);
+            modulatorPanel.style.setProperty('--panel-offset', `${clamped}px`);
+            isPanelCollapsed = clamped > 0;
+            modulatorPanel.classList.toggle('collapsed', isPanelCollapsed);
+            modulatorPanel.classList.toggle('expanded', !isPanelCollapsed);
+        }
+
+        function togglePanelCollapsed() {
+            setPanelOffset(isPanelCollapsed ? 0 : getPanelHiddenOffset());
+        }
+
+        function attachPanelHandle() {
+            if (!modulatorHandle || !modulatorPanel) return;
+
+            modulatorHandle.addEventListener('click', () => {
+                if (isDraggingPanel) return;
+                togglePanelCollapsed();
+            });
+
+            modulatorHandle.addEventListener('pointerdown', (event) => {
+                isDraggingPanel = true;
+                panelDragStartX = event.clientX;
+                panelStartOffset = parseFloat(getComputedStyle(modulatorPanel).getPropertyValue('--panel-offset')) || 0;
+                modulatorHandle.setPointerCapture(event.pointerId);
+            });
+
+            const handleDragMove = (event) => {
+                if (!isDraggingPanel) return;
+                const deltaX = event.clientX - panelDragStartX;
+                const newOffset = panelStartOffset + deltaX;
+                setPanelOffset(newOffset);
+            };
+
+            const endDrag = (event) => {
+                if (!isDraggingPanel) return;
+                isDraggingPanel = false;
+                if (event && modulatorHandle.hasPointerCapture && modulatorHandle.hasPointerCapture(event.pointerId)) {
+                    modulatorHandle.releasePointerCapture(event.pointerId);
+                }
+                const currentOffset = parseFloat(getComputedStyle(modulatorPanel).getPropertyValue('--panel-offset')) || 0;
+                const maxOffset = getPanelHiddenOffset();
+                setPanelOffset(currentOffset > maxOffset / 2 ? maxOffset : 0);
+            };
+
+            modulatorHandle.addEventListener('pointermove', handleDragMove);
+            modulatorHandle.addEventListener('pointerup', endDrag);
+            modulatorHandle.addEventListener('pointercancel', endDrag);
+        }
+
+        attachPanelHandle();
         
         const imageFilterCanvas = document.getElementById('imageFilterCanvas');
         const mainImage = document.getElementById('main-image');
@@ -2970,8 +3095,9 @@
         function startExperimentMode() {
             if (isExperimentMode) return;
             isExperimentMode = true;
-            
+
             modulatorPanel.style.display = 'block';
+            requestAnimationFrame(() => setPanelOffset(isPanelCollapsed ? getPanelHiddenOffset() : 0));
             toggleButton.textContent = 'DEACTIVATE EXPERIMENT MODE';
             toggleButton.style.backgroundColor = '#00FF00';
             toggleButton.style.color = '#000';
