@@ -160,7 +160,7 @@
             display: none;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
             height: 100vh;
-            overflow: hidden;
+            overflow: visible;
             transform: translateX(var(--panel-offset, 0));
             transition: transform 0.3s ease;
         }
@@ -741,7 +741,7 @@
         let isDraggingPanel = false;
         let panelDragStartX = 0;
         let panelStartOffset = 0;
-        const PANEL_HANDLE_WIDTH = 22;
+        const PANEL_HANDLE_WIDTH = 25;
         
         let timeAccumR = 0;
         let timeAccumG = 0;
